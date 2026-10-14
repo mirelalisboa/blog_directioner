@@ -1,29 +1,95 @@
-<?php require_once __DIR__ .'/../includes/functions.php'; ?>
+
+<?php
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../includes/verificalogin.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+$email_pesquisa = trim($_GET['email'] ?? '');
+$usuario = null;
+$mensagem = '';
+
+// Pesquisa quando um e-mail é informado.
+if ($email_pesquisa != '') {
+
+    if (!filter_var($email_pesquisa, FILTER_VALIDATE_EMAIL)) {
+
+        $mensagem = "Informe um e-mail válido.";
+
+    } else {
+
+        $sql = "SELECT name_sobrenome, email
+                FROM usuarios
+                WHERE email = :email";
+
+        $stmt = $conexao->prepare($sql);
+        $stmt->execute([':email' => $email_pesquisa]);
+
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$usuario) {
+            $mensagem = "Nenhum usuário encontrado com esse e-mail.";
+        }
+    }
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>consultar usuario</title>
+    <title>Pesquisar usuário</title>
 </head>
-
 <body>
-    <?php include  __DIR__ .'/../includes/header.php'; ?>
-    <h1>Consultar usuário</h1>
-    <main></main>
-    <form action="" method="post">
-        <label for="id">ID: </label>
-        <input type="number" name="id" id="id" placeholder="insira o ID para consultar" required><br>
-        <input type="submit" value="consultar">
-    </form>
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] == "POST") {
-        consultar($conexao, $_POST['id']);
-    }
-    ?>
-    </main>
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
-</body>
 
+    <h1>Pesquisar usuário</h1>
+
+    <form method="GET">
+
+        <div>
+            <div>Digite o e-mail cadastrado:</div>
+
+            <input
+                type="email"
+                name="email"
+                value="<?php echo htmlspecialchars($email_pesquisa); ?>"
+                required
+            >
+        </div>
+
+        <br>
+        <button type="submit">Pesquisar</button>
+
+    </form>
+
+    <?php if ($mensagem != ''): ?>
+        <p><?php echo htmlspecialchars($mensagem); ?></p>
+    <?php endif; ?>
+
+    <?php if ($usuario): ?>
+
+        <h2>Dados encontrados</h2>
+
+        <div>
+            <div>Nome completo:</div>
+            <div><?php echo htmlspecialchars($usuario['name_sobrenome']); ?></div>
+        </div>
+
+        <br>
+
+        <div>
+            <div>E-mail:</div>
+            <div><?php echo htmlspecialchars($usuario['email']); ?></div>
+        </div>
+
+    <?php endif; ?>
+
+    <br>
+    <a href="perfil.php">Voltar ao perfil</a>
+
+</body>
 </html>

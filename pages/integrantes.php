@@ -49,7 +49,10 @@ require_once __DIR__ . '/../includes/verificalogin.php';
     <h3>Notícias</h3>
 
     <a href="https://www.rte.ie/entertainment/2026/0705/1581860-harry-styles-pays-tribute-to-one-direction-bandmates/" target="_blank">
-        Ler notícia
+        Ler notícia <br>
+    </a>
+    <a href="">
+        ver albuns
     </a>
     <h2>
         <?php echo $integrante2; ?>
@@ -71,6 +74,9 @@ require_once __DIR__ . '/../includes/verificalogin.php';
     <a href="https://louis-tomlinson.com/" target="_blank">
         Ver novidades
     </a>
+    <a href="">
+        ver albuns
+    </a>
 
 
     <hr>
@@ -91,7 +97,9 @@ require_once __DIR__ . '/../includes/verificalogin.php';
     <a href="https://portalpopline.com.br/membros-one-direction-albuns-2026-desempenho/" target="_blank">
         Ler notícia
     </a>
-
+    <a href="">
+        ver albuns
+    </a>
 
     <hr>
 
@@ -111,7 +119,9 @@ require_once __DIR__ . '/../includes/verificalogin.php';
     <a href="https://www.inzayn.com/tour/#/" target="_blank">
         Ler notícias
     </a>
-
+    <a href="">
+        ver albuns
+    </a>
 
     <hr>
     <h2>
@@ -132,7 +142,9 @@ require_once __DIR__ . '/../includes/verificalogin.php';
     <a href="https://www.eonline.com/news/one_direction" target="_blank">
         Ler notícias
     </a>
-
+    <a href="">
+        ver albuns
+    </a>
     <hr>
     <?php include __DIR__ . '/../includes/footer.php';
     ?>

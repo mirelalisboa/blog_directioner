@@ -3,34 +3,62 @@
 
 require_once __DIR__ . '/../database/connect.php';
 
-// FUNÇÃO PARA CADASTRAR USUÁRIO
+
+// ======================================================
+// CREATE: CADASTRAR USUÁRIO
+// ======================================================
+
 
 function cadastra_user($conexao, $nome, $email, $senha)
 {
-    // Protege a senha antes de salvar no banco.
+    // Verifica se os campos estão preenchidos
+    if (
+        trim($nome) === '' ||
+        trim($email) === '' ||
+        $senha === ''
+    ) {
+        return false;
+    }
+
+    // Verifica se o e-mail é válido
+    if (!filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    // Protege a senha
     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-    $sql = "INSERT INTO usuarios (name_sobrenome, email, senha)
+    // Comando para inserir o usuário
+    $sql = "INSERT INTO usuarios
+            (name_sobrenome, email, senha)
             VALUES (:nome, :email, :senha)";
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":nome", $nome);
-        $stmt->bindParam(":email", $email);
-        $stmt->bindParam(":senha", $senha_hash);
-        $stmt->execute();
 
-        return true;
+        $stmt->bindValue(':nome', trim($nome));
+        $stmt->bindValue(':email', trim($email));
+        $stmt->bindValue(':senha', $senha_hash);
 
-    } catch (PDOException $e) {
-        // Retorna falso para a página tratar o erro.
+        // Executa o cadastro
+        return $stmt->execute();
+
+    } catch (PDOException $erro) {
+        // Mostra o erro durante o desenvolvimento
+        error_log("Erro ao cadastrar usuário: " . $erro->getMessage());
+
         return false;
     }
 }
 
 
-// FUNÇÃO PARA CONSULTAR USUÁRIO PELO EMAIL
 
+
+
+// ======================================================
+// SELECT COM WHERE: BUSCAR USUÁRIO PELO EMAIL
+// Usado no login.
+// ======================================================
 
 function consulta_user($conexao, $email)
 {
@@ -40,12 +68,11 @@ function consulta_user($conexao, $email)
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":email", $email);
+        $stmt->bindValue(":email", trim($email));
         $stmt->execute();
 
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Retorna os dados ou falso se não encontrar.
         return $usuario ? $usuario : false;
 
     } catch (PDOException $e) {
@@ -54,8 +81,36 @@ function consulta_user($conexao, $email)
 }
 
 
-// FUNÇÃO PARA CONSULTAR O PERFIL DO USUÁRIO
+// ======================================================
+// SELECT COM WHERE: BUSCAR DADOS PELO EMAIL
+// Para preencher automaticamente os campos.
+// ======================================================
 
+function consultar_por_email($conexao, $email)
+{
+    $sql = "SELECT id, name_sobrenome, email
+            FROM usuarios
+            WHERE email = :email";
+
+    try {
+        $stmt = $conexao->prepare($sql);
+        $stmt->bindValue(":email", trim($email));
+        $stmt->execute();
+
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $usuario ? $usuario : false;
+
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+
+// ======================================================
+// SELECT COM WHERE: CONSULTAR PERFIL PELO ID
+// Busca os dados do usuário conectado.
+// ======================================================
 
 function consultar_perfil($conexao, $id)
 {
@@ -65,10 +120,9 @@ function consultar_perfil($conexao, $id)
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
         $stmt->execute();
 
-        // Retorna os dados para a página de perfil.
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $usuario ? $usuario : false;
@@ -78,11 +132,40 @@ function consultar_perfil($conexao, $id)
     }
 }
 
-// FUNÇÃO PARA ATUALIZAR NOME E EMAIL DO USUÁRIO
 
+// ======================================================
+// SELECT: LISTAR TODOS OS USUÁRIOS
+// Para relatórios da área administrativa.
+// ======================================================
+
+function selecionar_usuarios($conexao)
+{
+    $sql = "SELECT id, name_sobrenome, email
+            FROM usuarios
+            ORDER BY id ASC";
+
+    try {
+        $stmt = $conexao->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+
+// ======================================================
+// UPDATE: ATUALIZAR NOME E EMAIL
+// ======================================================
 
 function atualizar_user($conexao, $id, $nome, $email)
 {
+    if (empty(trim($nome)) || empty(trim($email))) {
+        return false;
+    }
+
     $sql = "UPDATE usuarios
             SET name_sobrenome = :nome,
                 email = :email
@@ -90,9 +173,9 @@ function atualizar_user($conexao, $id, $nome, $email)
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-        $stmt->bindParam(":nome", $nome);
-        $stmt->bindParam(":email", $email);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":nome", trim($nome));
+        $stmt->bindValue(":email", trim($email));
 
         return $stmt->execute();
 
@@ -101,12 +184,18 @@ function atualizar_user($conexao, $id, $nome, $email)
     }
 }
 
-// FUNÇÃO PARA ALTERAR A SENHA DO USUÁRIO
 
+// ======================================================
+// UPDATE: ALTERAR SENHA
+// ======================================================
 
 function atualizar_senha($conexao, $id, $senha)
 {
-    // Nunca salva a nova senha em texto puro.
+    if ($senha === '') {
+        return false;
+    }
+
+    // Salva a senha usando hash.
     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
     $sql = "UPDATE usuarios
@@ -115,8 +204,8 @@ function atualizar_senha($conexao, $id, $senha)
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-        $stmt->bindParam(":senha", $senha_hash);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":senha", $senha_hash);
 
         return $stmt->execute();
 
@@ -126,22 +215,99 @@ function atualizar_senha($conexao, $id, $senha)
 }
 
 
-// FUNÇÃO PARA EXCLUIR USUÁRIO
+// ======================================================
+// DELETE: EXCLUIR USUÁRIO PELO EMAIL
+// ======================================================
 
-
-function excluir_user($conexao, $id)
+// Função para excluir um usuário pelo e-mail.
+function excluir_user($conexao, $email)
 {
-    $sql = "DELETE FROM usuarios WHERE id = :id";
+    // Verifica se o e-mail foi informado.
+    if (empty($email)) {
+        return false;
+    }
+
+    // Prepara a consulta para excluir o usuário.
+    $sql = "DELETE FROM usuarios WHERE email = :email";
 
     try {
         $stmt = $conexao->prepare($sql);
-        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
 
-        return $stmt->execute();
+        // Associa o e-mail à consulta.
+        $stmt->bindValue(':email', trim($email));
+
+        // Executa a exclusão.
+        $stmt->execute();
+
+        // Retorna true se algum usuário foi excluído.
+        return $stmt->rowCount() > 0;
 
     } catch (PDOException $e) {
+        error_log("Erro ao excluir usuário: " . $e->getMessage());
         return false;
     }
 }
 
+
+
+// ======================================================
+// FUNÇÃO PARA CRIAR UMA CONTA NOVA
+// Separada da função de login.
+// ======================================================
+
+function criar_conta($conexao, $nome, $email, $senha)
+{
+    // Verifica se os campos foram preenchidos.
+    if (
+        trim($nome) === '' ||
+        trim($email) === '' ||
+        $senha === ''
+    ) {
+        return false;
+    }
+
+    // Verifica se o email já está cadastrado.
+    $usuario_existente = consulta_user($conexao, $email);
+
+    if ($usuario_existente) {
+        return false;
+    }
+
+    // Salva os dados usando a função de cadastro existente.
+    return cadastra_user($conexao, $nome, $email, $senha);
+}
+
+
+// ======================================================
+// FUNÇÃO PARA FAZER LOGIN
+// Busca o usuário e verifica a senha.
+// ======================================================
+
+function login_user($conexao, $email, $senha)
+{
+    // Procura o usuário pelo email.
+    $usuario = consulta_user($conexao, $email);
+
+    // Verifica se o usuário existe e se a senha está correta.
+    if (!$usuario || !password_verify($senha, $usuario['senha'])) {
+        return false;
+    }
+
+    // Inicia a sessão caso ainda não esteja iniciada.
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Renova o identificador da sessão.
+    session_regenerate_id(true);
+
+    // Guarda os dados necessários do usuário na sessão.
+    $_SESSION['id'] = $usuario['id'];
+    $_SESSION['usuario'] = $usuario['name_sobrenome'];
+    $_SESSION['email'] = $usuario['email'];
+
+    return true;
+}
+
 ?>
+

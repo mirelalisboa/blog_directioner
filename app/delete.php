@@ -1,21 +1,42 @@
 
 <?php
 
-if (session_status() == PHP_SESSION_NONE) {
+// Inicia a sessão, caso ainda não esteja iniciada.
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/verificar_login.php';
-;
+require_once __DIR__ . '/../includes/functions.php';
 
-// Só permite continuar se o usuário estiver conectado
-if (!isset($_SESSION['id'])) {
-    header("Location: ../login/login.php");
+// Verifica se existe um e-mail na sessão.
+if (!isset($_SESSION['email']) || empty($_SESSION['email'])) {
+    header("Location: cadastro.php");
     exit();
 }
 
-$id = $_SESSION['id'];
+$mensagem = "";
+
+// Só exclui a conta quando o formulário for enviado.
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // Guarda o e-mail da conta conectada.
+    $email = $_SESSION['email'];
+
+    // Exclui a conta pelo e-mail.
+    if (excluir_user($conexao, $email)) {
+
+        // Encerra a sessão após excluir a conta.
+        $_SESSION = [];
+        session_destroy();
+
+        header("Location: cadastro.php");
+        exit();
+
+    } else {
+        $mensagem = "Não foi possível excluir sua conta.";
+    }
+}
 
 ?>
 
@@ -25,7 +46,7 @@ $id = $_SESSION['id'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excluir minha conta</title>
+    <title>Excluir conta</title>
 </head>
 
 <body>
@@ -34,55 +55,31 @@ $id = $_SESSION['id'];
 
     <main>
 
-        <h1>Excluir minha conta</h1>
+        <h1>Excluir conta</h1>
 
         <p>Tem certeza de que deseja excluir sua conta?</p>
         <p>Essa ação não poderá ser desfeita.</p>
 
-        <form action="" method="post">
+        <?php if (!empty($mensagem)) : ?>
+            <p>
+                <?php echo htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+        <?php endif; ?>
 
-            <input type="submit"
-                   name="confirmar"
-                   value="Sim, excluir minha conta">
-
-            <input type="button"
-                   value="Cancelar"
-                   onclick="window.location.href='../app/create.php'">
-
+        <form method="post" action="">
+            <button type="submit">
+                Sim, excluir minha conta
+            </button>
         </form>
 
-        <?php
+        <br>
 
-        if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['confirmar'])) {
-
-            try {
-
-                // Exclui somente a conta que está conectada
-                $sql = "DELETE FROM usuarios WHERE email && senha = :email, :senha";
-                $stmt = $conexao->prepare($sql);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->execute();
-
-                // Encerra a sessão depois da exclusão
-                $_SESSION = [];
-                session_destroy();
-
-                header("Location: ../paginalogin.php");
-                exit();
-
-            } catch (PDOException $e){
-
-
-            
-        }
-
-        }
-
-        ?>
+        <a href="perfil.php">Cancelar</a>
 
     </main>
 
     <?php include __DIR__ . '/../includes/footer.php'; ?>
 
 </body>
+
 </html>

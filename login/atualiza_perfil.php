@@ -1,4 +1,5 @@
 
+
 <?php
 
 if (session_status() == PHP_SESSION_NONE) {
@@ -10,46 +11,50 @@ require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $id = $_SESSION['id'];
+    // Pega o e-mail atual que está guardado na sessão.
+    $email_atual = $_SESSION['email'];
+
     $nome = trim($_POST['name_sobrenome']);
     $email = trim($_POST['email']);
 
-    // Verifica se o email já pertence a outra conta.
-    $sql = "SELECT id FROM usuarios
-            WHERE email = :email AND id <> :id";
+    // Verifica se o novo e-mail já pertence a outro usuário.
+    $sql = "SELECT email FROM usuarios
+            WHERE email = :email AND email <> :email_atual";
 
     $stmt = $conexao->prepare($sql);
     $stmt->execute([
         ':email' => $email,
-        ':id' => $id
+        ':email_atual' => $email_atual
     ]);
 
     if ($stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        echo "Esse email já está sendo usado por outro usuário.";
+        echo "Esse e-mail já está sendo usado por outro usuário.";
 
     } else {
 
-        // Atualiza somente o usuário que está conectado.
+        // Atualiza o nome e o e-mail usando o e-mail atual como referência.
         $sql = "UPDATE usuarios
                 SET name_sobrenome = :nome, email = :email
-                WHERE id = :id";
+                WHERE email = :email_atual";
 
         $stmt = $conexao->prepare($sql);
         $stmt->execute([
             ':nome' => $nome,
             ':email' => $email,
-            ':id' => $id
+            ':email_atual' => $email_atual
         ]);
 
-        // Atualiza o nome que está guardado na sessão.
+        // Atualiza os dados guardados na sessão.
         $_SESSION['usuario'] = $nome;
+        $_SESSION['email'] = $email;
 
         header("Location: perfil.php");
         exit();
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">

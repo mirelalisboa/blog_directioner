@@ -6,7 +6,7 @@
 
 
         <div>
-
+            <link rel="stylesheet" href="../css/style.css">
 
             <a href="/projetointegrador/index.php"> Início | </a>
 

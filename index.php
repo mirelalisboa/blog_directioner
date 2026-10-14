@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>One Direction</title>
+     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -15,22 +16,17 @@
         </video>
     <?php include __DIR__ . '/includes/header.php'; ?>
     <hr>
-<hr>
+
 <main>
     <form action="" method="post">
 
-      <button type="button" onclick="window.location.href='/projetointegrador/pages/paginicial.php'">
+      <button type="button" onclick="window.location.href='/../login/login.php'">
         Continuar
     </button>
     </form>
 </main>
 
 
-<br>
-<br>
-<br>
-<br>
-<br>
 <hr>
 <?php include __DIR__ . '/includes/footer.php';
  ?>

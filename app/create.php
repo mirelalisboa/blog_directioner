@@ -1,39 +1,45 @@
-<?php require_once  __DIR__ .'/../includes/functions.php';
+```php
+<?php
 
-require_once __DIR__ . '/login/verificalogin.php';
-?>
+// Inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-<!DOCTYPE html>
-<html lang="pt-br">
+// Importa as funções e a conexão com o banco
+require_once __DIR__ . '/../includes/functions.php';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>apaga usuario</title>
-</head>
+// Verifica se o formulário foi enviado
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-<body>
-    <?php include __DIR__ .  '/../includes/header.php'; ?>
-    <h1>Apaga usuário</h1>
-    <main></main>
-    <form action="" method="post">
-        <label for="email">Email: </label>
-        <input type="text" name="email"  placeholder="insira o email para apagar" required><br>
+    // Recebe os dados do formulário
+    $nome = trim($_POST['name_sobrenome'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $senha = $_POST['senha'] ?? '';
 
-        <label for="email">Senha: </label>
-        <input type="password" name="senha"  placeholder="insira a senha para apagar" required><br>
-        <input type="submit" value="Apagar">
-
-
-    </form>
-
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] == "POST") {
-        excluir_user($conexao, $_POST['id']);
+    // Verifica se os campos foram preenchidos
+    if ($nome === '' || $email === '' || $senha === '') {
+        exit('Preencha todos os campos.');
     }
-    ?>
-    </main>
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
-</body>
 
-</html>
+    // Verifica se o e-mail é válido
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        exit('Digite um e-mail válido.');
+    }
+
+    // Cadastra o usuário no banco de dados
+    $resultado = cadastra_user($conexao, $nome, $email, $senha);
+
+    // Verifica se o cadastro foi realizado
+    if ($resultado === true) {
+        header('Location: cadastro.php');
+        exit();
+    } else {
+        echo "Não foi possível cadastrar o usuário.";
+        echo '<p><a href="login.php">Tentar novamente</a></p>';
+    }
+} else {
+    echo "O formulário não foi enviado corretamente.";
+}
+?>
+```

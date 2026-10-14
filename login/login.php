@@ -1,79 +1,56 @@
-
-<?php
-
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-require_once __DIR__ . '/../includes/functions.php';
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $email = trim($_POST["email"]);
-    $senha = $_POST["senha"];
-
-    // Procura o usuário pelo email.
-    $usuario = consulta_user($conexao, $email);
-
-    // Confere a senha criptografada.
-    if ($usuario && password_verify($senha, $usuario["senha"])) {
-
-        session_regenerate_id(true);
-
-        $_SESSION["id"] = $usuario["id"];
-        $_SESSION["usuario"] = $usuario["name_sobrenome"];
-
-        // Redireciona após o login.
-        header("Location: ../pages/noticias.php");
-        exit();
-
-    } else {
-        $erro = "Email ou senha incorretos!";
-    }
-}
-
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
+
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>One Direction</title>
 </head>
 
+
 <body>
-
+    <video width="900" controls autoplay muted>
+        <source src="videos/video.mp4" type="video/mp4">
+    </video>
     <?php include __DIR__ . '/../includes/header.php'; ?>
-
+    <hr>
+    <br>
+    <br>
     <main>
-        <h1>Faça login para continuar</h1>
 
-        <?php
-        if (isset($erro)) {
-            echo "<p>" . htmlspecialchars($erro) . "</p>";
-            echo '<a href="login.php">Tentar novamente</a>';
-        }
-        ?>
 
-        <form action="" method="post">
+            <form action="create.php" method="POST">
+            
 
-            <label for="email">Email:</label>
-            <input type="email" name="email" id="email" required>
-            <br>
 
-            <label for="senha">Senha:</label>
-            <input type="password" name="senha" id="senha" required>
-            <br>
+            <label for="name_sobrenome">Digite Seu Nome Completo </label><br>
+            <input type="text" name="nome completo" id="name_sobrenome"><br>
 
-            <input type="submit" value="Entrar">
+
+            <label for="email">Digite Seu E-mail: </label><br>
+            <input type="email" name="email" id="email"><br>
+
+
+            <label for="senha">Digite Sua Senha: </label><br>
+            <input type="password" name="senha" id="senha"><br>
+
+
+            <input type="button" value="Criar Conta" onclick="window.location.href='/pages/noticias.php'"> <br>
+            <input type="button" value="ja tem conta?" onclick="window.location.href='/../login/cadastro.php'"> <br>
             <input type="reset" value="Limpar">
+
 
         </form>
     </main>
 
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
+
+
+
+    <?php include  __DIR__ . '/../includes/footer.php';
+    ?>
 
 </body>
-</html>
+
+
+</html

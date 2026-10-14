@@ -1,35 +1,15 @@
-
 <?php
+// verifica_user.php: Verifica se há um usuário conectado e, caso não exista, redireciona a pessoa para a página inicial (index.php).
 
+// Verifica se não há uma sessão iniciada
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/functions.php';
+// Verifica se não há um usuário conectado pelo ID
+if (!isset($_SESSION['id_usuario'])) {
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
-    header("Location: login.php");
+    // Se não estiver conectado, redireciona para a página inicial.
+    header("Location: ../index.php");
     exit();
 }
-
-$email = trim($_POST["email"] ?? "");
-$senha = $_POST["senha"] ?? "";
-
-$usuario = consulta_user($conexao, $email);
-
-if ($usuario && password_verify($senha, $usuario["senha"])) {
-
-    session_regenerate_id(true);
-
-    $_SESSION["id"] = $usuario["id"];
-    $_SESSION["usuario"] = $usuario["name_sobrenome"];
-
-    header("Location: ../noticias.php");
-    exit();
-
-} else {
-    header("Location: login.php?erro=1");
-    exit();
-}
-
-?>
