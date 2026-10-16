@@ -9,6 +9,7 @@ $integrante5 = "Liam Payne";
 
 
 require_once __DIR__ . '/../includes/verificalogin.php';
+require_once __DIR__ . '/../login/verificauser.php';
 ?>
 
 <!DOCTYPE html>

@@ -6,6 +6,8 @@ $epoca3 = "2016 - 2020";
 
 
 require_once __DIR__ . '/../includes/verificalogin.php';
+require_once __DIR__ . '/../login/verificauser.php';
+
 
 
 ?>

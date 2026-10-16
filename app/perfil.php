@@ -7,6 +7,8 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../login/verificauser.php';
+
 
 
 // Busca os dados do usuário pelo e-mail da sessão.

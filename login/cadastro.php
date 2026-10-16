@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../login/verificauser.php';
 
 // Verifica se o formulário foi enviado.
 if ($_SERVER['REQUEST_METHOD'] === "POST") {

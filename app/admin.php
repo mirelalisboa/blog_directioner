@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/verificar_login.php';
+require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 // Confere se o usuário conectado é administrador

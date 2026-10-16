@@ -6,8 +6,9 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/verificar_login.php';
+require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../login/verificauser.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 

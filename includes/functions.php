@@ -309,5 +309,20 @@ function login_user($conexao, $email, $senha)
     return true;
 }
 
+
+function verifica_user()
+{
+    // Inicia a sessão, se necessário
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Verifica se o usuário está logado
+    if (!isset($_SESSION['id'])) {
+        header('Location: ../login.php');
+        exit();
+    }
+}
+
 ?>
 

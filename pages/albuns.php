@@ -8,6 +8,7 @@ $album5 = "Made In The A.M.";
 
 
 require_once __DIR__ . '/../includes/verificalogin.php';
+require_once __DIR__ . '/../login/verificauser.php';
 
 
 ?>
