@@ -1,21 +1,34 @@
+<!-- =====================================================
+     app/update.php — ATUALIZAR MINHA CONTA
+     O QUE FAZ: formulário completo da conta logada — troca de
+     nome, e-mail, senha e foto de perfil (upload com validação).
+     POR QUÊ: acessado pelo botão "Atualizar conta" do perfil;
+     pagina com JS simples para abrir/fechar a edição ao clicar
+     na foto.
+     ===================================================== -->
 <?php
 
+// Sessão ativa antes de tudo (o UPDATE usa o e-mail da sessão).
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/verificar_login.php';
+// Guarda de login (nome correto do arquivo é verificalogin.php).
+require_once __DIR__ . '/../includes/verificalogin.php';
+// functions.php: funções + $conexao.
 require_once __DIR__ . '/../includes/functions.php';
 
+// Reforço: sem e-mail na sessão nada pode ser atualizado.
 if (empty($_SESSION['email'])) {
     echo "Faça login para atualizar sua conta.";
     exit();
 }
 
+// E-mail que localiza a conta no banco (chave da sessão).
 $email_atual = $_SESSION['email'];
 $mensagem = "";
 
-// Busca os dados da conta conectada.
+// Busca os dados da conta conectada (SELECT com WHERE).
 $sql = "SELECT name_sobrenome, email, foto_perfil
         FROM usuarios
         WHERE email = :email";
@@ -29,21 +42,25 @@ if (!$usuario) {
     exit();
 }
 
+// Só processa quando o envio é POST.
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $nome = trim($_POST['name_sobrenome'] ?? '');
+    // Campos do formulário.
+    $nome  = trim($_POST['name_sobrenome'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
     // Mantém a foto atual se nenhuma nova for enviada.
-    $foto_perfil = $usuario['foto_perfil'] ?? null;
+    $foto_perfil     = $usuario['foto_perfil'] ?? null;
     $nova_foto_salva = null;
 
+    // Validação 1: nome e e-mail com formato válido.
     if ($nome == "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "Informe um nome e um e-mail válido.";
     }
 
     // Verifica se o e-mail pertence a outra conta.
+    // ("email <> atual" permite manter o próprio e-mail.)
     if ($mensagem == "") {
 
         $sql = "SELECT email FROM usuarios
@@ -52,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt = $conexao->prepare($sql);
         $stmt->execute([
-            ':email' => $email,
+            ':email'       => $email,
             ':email_atual' => $email_atual
         ]);
 
@@ -68,19 +85,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_FILES['foto_perfil']['error'] != UPLOAD_ERR_NO_FILE
     ) {
 
+        // UPLOAD_ERR_OK = upload aconteceu sem problema.
         if ($_FILES['foto_perfil']['error'] != UPLOAD_ERR_OK) {
             $mensagem = "Ocorreu um erro ao enviar a foto.";
         } elseif ($_FILES['foto_perfil']['size'] > 5 * 1024 * 1024) {
+            // Limite de tamanho: 5 MB em bytes.
             $mensagem = "A foto deve ter no máximo 5 MB.";
         } else {
 
             // Aceita somente imagens JPG, PNG ou WEBP.
             $tiposPermitidos = [
                 'image/jpeg' => 'jpg',
-                'image/png' => 'png',
+                'image/png'  => 'png',
                 'image/webp' => 'webp'
             ];
 
+            // finfo inspeciona o CONTEÚDO real do arquivo —
+            // confiar só na extensão abriria brecha de segurança.
             $tipo = (new finfo(FILEINFO_MIME_TYPE))
                 ->file($_FILES['foto_perfil']['tmp_name']);
 
@@ -88,6 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mensagem = "Escolha uma imagem JPG, PNG ou WEBP.";
             } else {
 
+                // Pasta de destino (raiz do projeto/imagens/perfis).
+                // mkdir cria a pasta se ela ainda não existir.
                 $pasta = __DIR__ . '/../imagens/perfis/';
 
                 if (
@@ -98,17 +121,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $mensagem = "Não foi possível criar a pasta das fotos.";
                 } else {
 
-                    // Gera um nome aleatório para evitar conflitos.
+                    // Gera um nome aleatório para evitar conflitos:
+                    // bin2hex(random_bytes()) nunca repete nomes e
+                    // impede paths maliciosos vindo do usuário.
                     $nomeArquivo = bin2hex(random_bytes(16))
                         . '.' . $tiposPermitidos[$tipo];
 
                     $destino = $pasta . $nomeArquivo;
 
+                    // move_uploaded_file: move o arquivo temporário
+                    // do upload para a pasta final.
                     if (move_uploaded_file(
                         $_FILES['foto_perfil']['tmp_name'],
                         $destino
                     )) {
-                        $foto_perfil = $nomeArquivo;
+                        $foto_perfil     = $nomeArquivo;
                         $nova_foto_salva = $destino;
                     } else {
                         $mensagem = "Não foi possível salvar a foto.";
@@ -125,7 +152,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($senha != "") {
 
-                // Atualiza nome, e-mail, senha e foto.
+                // Update com troca de senha: hash de novo!
+                // (nunca gravar senha pura no banco)
                 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
                 $sql = "UPDATE usuarios
@@ -137,15 +165,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $stmt = $conexao->prepare($sql);
                 $stmt->execute([
-                    ':nome' => $nome,
-                    ':email' => $email,
-                    ':senha' => $senha_hash,
-                    ':foto' => $foto_perfil,
+                    ':nome'        => $nome,
+                    ':email'       => $email,
+                    ':senha'       => $senha_hash,
+                    ':foto'        => $foto_perfil,
                     ':email_atual' => $email_atual
                 ]);
             } else {
 
-                // Mantém a senha atual se o campo estiver vazio.
+                // Update sem troca de senha: mantém a atual.
                 $sql = "UPDATE usuarios
                         SET name_sobrenome = :nome,
                             email = :email,
@@ -154,22 +182,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $stmt = $conexao->prepare($sql);
                 $stmt->execute([
-                    ':nome' => $nome,
-                    ':email' => $email,
-                    ':foto' => $foto_perfil,
+                    ':nome'        => $nome,
+                    ':email'       => $email,
+                    ':foto'        => $foto_perfil,
                     ':email_atual' => $email_atual
                 ]);
             }
 
-            // Atualiza a sessão com os novos dados.
+            // Atualiza a sessão com os novos dados:
+            // páginas do perfil pesquisam por $_SESSION['email'].
             $_SESSION['usuario'] = $nome;
-            $_SESSION['email'] = $email;
+            $_SESSION['email']   = $email;
 
             header("Location: perfil.php");
             exit();
         } catch (PDOException $e) {
 
-            // Remove a nova imagem se o banco não aceitar a atualização.
+            // Remove a nova imagem se o banco não aceitar a
+            // atualização (evita arquivos "órfãos" na pasta).
             if (
                 $nova_foto_salva !== null &&
                 is_file($nova_foto_salva)
@@ -190,7 +220,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -200,6 +229,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Atualizar minha conta</title>
 
     <style>
+        /* Página clara com cartão central */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -216,6 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
 
+        /* Foto em círculo, clicável (o JS alterna o formulário) */
         .foto-perfil {
             width: 110px;
             height: 110px;
@@ -237,6 +268,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             object-fit: cover;
         }
 
+        /* Bloco de cada campo do formulário */
         .campo {
             margin: 15px 0;
             text-align: left;
@@ -264,6 +296,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: white;
         }
 
+        /* Mensagens de erro em vermelho */
         .mensagem {
             color: #b00020;
             margin: 12px 0;
@@ -299,6 +332,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
         </div>
 
+        <!-- Dados atuais (sem possibilidade de edição aqui) -->
         <div>
             <?php echo htmlspecialchars($usuario['name_sobrenome']); ?>
         </div>
@@ -315,7 +349,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         <?php endif; ?>
 
-        <!-- Formulário para atualizar a conta. -->
+        <!-- Formulário para atualizar a conta.
+             O atributo hidden fecha o form até o clique;
+             enctype é OBRIGATÓRIO para upload de arquivo. -->
         <div id="edicao" <?php echo $mensagem != "" ? '' : 'hidden'; ?>>
 
             <h2>Editar meus dados</h2>
@@ -372,6 +408,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script>
+        // abre/fecha o formulário de edição ao clicar na foto
         function alternarEdicao() {
             const edicao = document.getElementById('edicao');
             edicao.hidden = !edicao.hidden;
