@@ -22,7 +22,7 @@ O sistema tem três áreas: **pública** (conteúdo aberto), **do usuário cadas
 - **Álbuns** (`pages/albuns.php`) e **Álbuns solos** (`pages/albunssolos.php`): discografia da banda e das carreiras individuais, com comentários por álbum.
 - **Linha do tempo** (`pages/linhadotempo.php`): história da banda desde o *X Factor*.
 - **Notícias** (`pages/noticias.php`): página central do blog, com vídeo, links externos de notícias e os posts vindos do banco de dados.
-- **Galeria de fotos** organizada por período em `images/` (2010-11, 2012-13, 2014-15, 2016-atual), fotos de perfil em `imagens/perfis/` e vídeos da banda em `videos/video.mp4/` (os arquivos têm nomes legados, ex.: `videogotta.mp4.png.mp4` — não renomear, os `src` das páginas apontam para eles).
+- **Galeria de fotos** organizada por período em `images/` (2010-11, 2012-13, 2014-15, 2016-atual), fotos de perfil em `imagens/perfis/` e vídeos da banda em `videos/video.mp4/` (os arquivos têm nomes legados, ex.: `videogotta.mp4.png.mp4`.
 
 ### 2.2 Área do usuário (login e `app/perfil.php`)
 - **Cadastro de conta** e **login/logout** com sessão (`login/`), senhas armazenadas com `password_hash()`.
@@ -44,39 +44,118 @@ O sistema tem três áreas: **pública** (conteúdo aberto), **do usuário cadas
 
 ### Passo 1: Clonar o repositório
 ```bash
+
 git clone https://github.com/mirelalisboa/projetointegrador.git
-cd projetointegrador
+
 ```
 
-### Passo 2: Instalar as dependências
-O projeto é PHP puro — **não há dependências** (não usa Composer nem build). Basta ter o PHP com a extensão `pdo_pgsql` instalada.
 
-### Passo 3: Importar o banco de dados e configurar a conexão
-Execute os scripts SQL do projeto **uma vez** no banco PostgreSQL (são idempotentes, com `IF NOT EXISTS`):
+### Passo 2:
+Abra o Terminal, Prompt de Comando ou Git Bash no seu computador e navegue até a pasta onde deseja salvar o projeto:
+
 ```bash
-psql -h <host> -U <usuario> -d <banco> -f database/usuarios.sql
-psql -h <host> -U <usuario> -d <banco> -f database/noticias.sql
-psql -h <host> -U <usuario> -d <banco> -f database/albuns.sql
+cd caminho/pasta_desejada
 ```
 
-As credenciais de conexão ficam em `database/connect.php` (não há variáveis de ambiente). Edite as variáveis do topo desse arquivo para apontar para o seu servidor:
+Execute o comando git clone:
+
+```bash
+git clone https://github.com/mirelalisboa/projetointegrador.git
+```
+Acesse a pasta
+
+```bash
+cd /var/www/html/
+
+```
+
+Entre no diretório do projeto, colocando o caminho para entrar na pasta do site:
+
+```bash
+cd /var/www/html/projetointegrador
+```
+
+Passo 3: Criar e configurar o Banco de Dados
+
+Juntamente aos arquivos do projeto, você tem acesso ao dump do banco de dados sitehtml.sql, você usará ele neste momento. Siga as instruções abaixo:
+
+Abra o Terminal, Prompt de Comando ou PowerShell.
+
+Conecte-se ao PostgreSQL de acordo com seu sistema operacional:
+
+```bash
+psql -U postgres
+```
+
+
+Rode os comandos abaixo para criar o usuário 'sitehtml', definir a senha '1234', criar o banco e ajustar o dono do banco:
 
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
-| `$host` | Endereço do servidor PostgreSQL | `192.168.10.62` |
 | `$dbname` | Nome do banco de dados | `sitehtml` |
 | `$user` | Usuário do banco | `sitehtml` |
 | `$pass` | Senha do banco | `1234` |
 
-### Passo 4: Executar a aplicação
-Os links internos do site usam caminhos absolutos com o prefixo **`/projetointegrador/`** (ex.: `/projetointegrador/pages/noticias.php`). Por isso, o projeto precisa ser servido sob esse prefixo: depois de clonar, renomeie a pasta `projeto.integrador2` para `projetointegrador` (ou faça um link com esse nome) dentro de um diretório pai, e rode o servidor a partir desse pai:
+
 ```bash
-php -S 127.0.0.1:8000 <diretório_pai_que_contém_o_projeto_como_/projetointegrador>
+CRIAR USUÁRIO sitehtml COM SENHA '1234'; 
+
+CRIAR BANCO DE DADOS sitehtml PROPRIETÁRIO sitehtml; 
+
+ALTERAR BANCO DE DADOS sitehtml PROPRIETÁRIO PARA sitehtml;
 ```
 
-Abra no navegador: **`http://127.0.0.1:8000/projetointegrador/index.php`**
+Verifique se tudo ocorreu bem (banco de dados e usuário criados)
 
-> **Observações legadas** (comportamento atual do código): em `login/`, `login.php` na verdade **cria conta** e `cadastro.php` na verdade **faz login** — os nomes aparecem trocados na navegação real do site. Também é possível validar a sintaxe de arquivos PHP alterados com `php -l arquivo.php`.
+Verificação do banco de dados:
+
+```bash
+\l
+
+```
+
+- Verificação dos usuários:
+
+
+```bash
+
+\du # Lista básica
+
+ ou
+
+\du+ # Lista detalhada
+
+```
+
+
+Saia do terminal do PostgreSQL:
+
+```bash
+
+
+\q
+
+```
+
+
+Agora, importe o arquivo de backup para criar as tabelas iniciais:
+
+```bash
+
+
+psql -U sitehtml -d sitehtml -f backup.sql
+
+```
+
+
+
+
+Após configurar o banco de dados e a conexão, inicialize o servidor. Com o seu terminal aberto na pasta raiz do projeto, execute o comando abaixo:
+php -S 0.0.0.0:8000
+Deste modo, o projeto estará acessível no seu navegador através do endereço http://localhost:8000.
+Agora você está pronto para explorar o aplicativo!
+
+Os links internos do site usam caminhos absolutos com o prefixo **`/projetointegrador/`** (ex.: `/projetointegrador/pages/noticias.php`). Por isso, o projeto precisa ser servido sob esse prefixo.
 
 ## 4. Organização dos arquivos
 
@@ -92,8 +171,8 @@ projeto.integrador2/
 ├── database/
 │   ├── connect.php            # conexão PDO (PostgreSQL)
 │   ├── usuarios.sql           # tabela de usuários + admin padrão
-│   ├── noticias.sql           # tabelas do blog + seed de notícias
-│   └── albuns.sql             # tabelas dos álbuns + seed
+│   ├── noticias.sql           # tabelas do blog + de notícias
+│   └── albuns.sql             # tabelas dos álbuns 
 ├── documentacao/
 │   └── documentacao.md        # especificação original do site
 ├── images/                    # fotos da banda por período
@@ -120,9 +199,10 @@ projeto.integrador2/
 
 O Blog Directioner foi desenvolvido como Projeto Integrador, unindo conteúdo sobre a banda One Direction com exercícios práticos de desenvolvimento web em PHP, banco de dados relacional (PostgreSQL), sessões e autenticação. É um site legado, mantido no idioma português (pt-BR) no código e no conteúdo.
 
-Como próximos passos, seriam naturais: centralizar o CSS hoje embutido nas páginas em um arquivo externo (`css/style.css` já é referenciado por `header.php`/`footer.php`), mover as credenciais do banco para variáveis de ambiente (hoje em `database/connect.php`) e normalizar a nomenclatura legada de `login/` — preservando a compatibilidade dos links existentes.
 
 ## Autoria
+
+©2010-forever
 
 **Desenvolvido por Mirela ([github.com/mirelalisboa](https://github.com/mirelalisboa))**
 Projeto Integrador desenvolvido em contexto acadêmico (SENAI).
