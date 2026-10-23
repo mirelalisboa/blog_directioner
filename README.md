@@ -72,7 +72,7 @@ cd /var/www/html/
 Entre no diretório do projeto, colocando o caminho para entrar na pasta do site:
 
 ```bash
-cd /var/www/html/projetointegrador
+cd projetointegrador
 ```
 
 Passo 3: Criar e configurar o Banco de Dados
@@ -83,6 +83,14 @@ Abra o Terminal, Prompt de Comando ou PowerShell.
 
 Conecte-se ao PostgreSQL de acordo com seu sistema operacional:
 
+Conecte-se ao PostgreSQL de acordo com seu sistema operacional:
+
+Linux/macOS (Terminal):
+```bash
+sudo -u postgres psql
+```
+
+Windows (Prompt/PowerShell):
 ```bash
 psql -U postgres
 ```
@@ -98,11 +106,13 @@ Rode os comandos abaixo para criar o usuário 'sitehtml', definir a senha '1234'
 
 
 ```bash
-CRIAR USUÁRIO sitehtml COM SENHA '1234'; 
+CREATE DATABASE site html;
+
+CREATE USER sitehtml COM SENHA '1234'; 
 
 CRIAR BANCO DE DADOS sitehtml PROPRIETÁRIO sitehtml; 
 
-ALTERAR BANCO DE DADOS sitehtml PROPRIETÁRIO PARA sitehtml;
+ALTER DATABASE sitehtml OWNER TO sitehtml;
 ```
 
 Verifique se tudo ocorreu bem (banco de dados e usuário criados)
