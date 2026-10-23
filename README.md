@@ -240,8 +240,7 @@ Quando solicitado, informe a senha do usuário `sitehtml`.
 - Configurar a conexão da aplicação
 
 No arquivo database/connect.php, configure os dados do banco local. O arquivo deve ter este formato:
-
-php
+```bash
 <?php
 define('DB_HOST', 'localhost'); // adicione o IP da sua maquina no localhost
 define('DB_PORT', '5432');  // porta padrão utilizada, NÃO DEXE SER ALTERADA
@@ -249,7 +248,7 @@ define('DB_NAME', 'sitehtml');  // nome do banco de dados criado
 define('DB_USER', 'sitehtml');   // nome do usuário criado
 define('DB_PASS', '1234');  // senha do banco de dados
 ?>
-
+```
 após a alteração devida SALVE o arquivo.
 
 
