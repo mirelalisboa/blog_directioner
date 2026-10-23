@@ -1,24 +1,17 @@
-<!-- =====================================================
-     app/update.php — ATUALIZAR MINHA CONTA
-     O QUE FAZ: formulário completo da conta logada — troca de
-     nome, e-mail, senha e foto de perfil (upload com validação).
-     POR QUÊ: acessado pelo botão "Atualizar conta" do perfil;
-     pagina com JS simples para abrir/fechar a edição ao clicar
-     na foto.
-     ===================================================== -->
+<!-- atualizar conta: nome, email, senha e foto de perfil -->
 <?php
 
-// Sessão ativa antes de tudo (o UPDATE usa o e-mail da sessão).
+// sessao ativa antes de tudo (o update usa o email dela)
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Guarda de login (nome correto do arquivo é verificalogin.php).
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
 // functions.php: funções + $conexao.
 require_once __DIR__ . '/../includes/functions.php';
 
-// Reforço: sem e-mail na sessão nada pode ser atualizado.
+// sem email na sessao nao da pra atualizar
 if (empty($_SESSION['email'])) {
     echo "Faça login para atualizar sua conta.";
     exit();
@@ -28,7 +21,7 @@ if (empty($_SESSION['email'])) {
 $email_atual = $_SESSION['email'];
 $mensagem = "";
 
-// Busca os dados da conta conectada (SELECT com WHERE).
+// busca os dados da conta pelo email
 $sql = "SELECT name_sobrenome, email, foto_perfil
         FROM usuarios
         WHERE email = :email";
@@ -54,13 +47,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $foto_perfil     = $usuario['foto_perfil'] ?? null;
     $nova_foto_salva = null;
 
-    // Validação 1: nome e e-mail com formato válido.
+    // valida o nome e o formato do email
     if ($nome == "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "Informe um nome e um e-mail válido.";
     }
 
-    // Verifica se o e-mail pertence a outra conta.
-    // ("email <> atual" permite manter o próprio e-mail.)
+    // confere se o email novo ja e de outro usuario
+    // (manter o proprio email e permitido)
     if ($mensagem == "") {
 
         $sql = "SELECT email FROM usuarios
@@ -100,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'image/webp' => 'webp'
             ];
 
-            // finfo inspeciona o CONTEÚDO real do arquivo —
-            // confiar só na extensão abriria brecha de segurança.
+            // finfo olha o conteudo real do arquivo
+            // (a extensao sozinha pode mentir)
             $tipo = (new finfo(FILEINFO_MIME_TYPE))
                 ->file($_FILES['foto_perfil']['tmp_name']);
 
@@ -109,8 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mensagem = "Escolha uma imagem JPG, PNG ou WEBP.";
             } else {
 
-                // Pasta de destino (raiz do projeto/imagens/perfis).
-                // mkdir cria a pasta se ela ainda não existir.
+                // pasta imagens/perfis; mkdir cria
+                // ela se ainda nao existir
                 $pasta = __DIR__ . '/../imagens/perfis/';
 
                 if (
@@ -121,16 +114,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $mensagem = "Não foi possível criar a pasta das fotos.";
                 } else {
 
-                    // Gera um nome aleatório para evitar conflitos:
-                    // bin2hex(random_bytes()) nunca repete nomes e
-                    // impede paths maliciosos vindo do usuário.
+                    // nome aleatorio pro arquivo: nunca repete
+                    // e evita caminho malicioso vindo do usuario
                     $nomeArquivo = bin2hex(random_bytes(16))
                         . '.' . $tiposPermitidos[$tipo];
 
                     $destino = $pasta . $nomeArquivo;
 
-                    // move_uploaded_file: move o arquivo temporário
-                    // do upload para a pasta final.
+                    // move o arquivo temporario do upload
+                    // pra pasta final
                     if (move_uploaded_file(
                         $_FILES['foto_perfil']['tmp_name'],
                         $destino
@@ -152,8 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($senha != "") {
 
-                // Update com troca de senha: hash de novo!
-                // (nunca gravar senha pura no banco)
+                // se o usuario digitou senha nova, salva o hash dela
                 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
                 $sql = "UPDATE usuarios
@@ -173,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ]);
             } else {
 
-                // Update sem troca de senha: mantém a atual.
+                // sem senha nova: mantem a atual
                 $sql = "UPDATE usuarios
                         SET name_sobrenome = :nome,
                             email = :email,
@@ -189,8 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ]);
             }
 
-            // Atualiza a sessão com os novos dados:
-            // páginas do perfil pesquisam por $_SESSION['email'].
+            // atualiza a sessao com os dados novos
             $_SESSION['usuario'] = $nome;
             $_SESSION['email']   = $email;
 
@@ -198,8 +188,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         } catch (PDOException $e) {
 
-            // Remove a nova imagem se o banco não aceitar a
-            // atualização (evita arquivos "órfãos" na pasta).
+            // se o banco falhar, apaga a foto nova
+            // que ficou salva a toa na pasta
             if (
                 $nova_foto_salva !== null &&
                 is_file($nova_foto_salva)
@@ -246,7 +236,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
 
-        /* Foto em círculo, clicável (o JS alterna o formulário) */
+        /* foto redonda e clicavel (o js abre o form) */
         .foto-perfil {
             width: 110px;
             height: 110px;
@@ -332,7 +322,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
         </div>
 
-        <!-- Dados atuais (sem possibilidade de edição aqui) -->
+        <!-- dados atuais (so leitura aqui) -->
         <div>
             <?php echo htmlspecialchars($usuario['name_sobrenome']); ?>
         </div>
@@ -349,9 +339,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         <?php endif; ?>
 
-        <!-- Formulário para atualizar a conta.
-             O atributo hidden fecha o form até o clique;
-             enctype é OBRIGATÓRIO para upload de arquivo. -->
+        <!-- form de edicao (hidden ate clicar na foto);
+             enctype e obrigatorio pra enviar arquivo -->
         <div id="edicao" <?php echo $mensagem != "" ? '' : 'hidden'; ?>>
 
             <h2>Editar meus dados</h2>

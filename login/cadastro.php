@@ -1,22 +1,13 @@
-<!-- =====================================================
-     login/cadastro.php — ENTRAR NA CONTA (login)
-     ATENÇÃO: apesar do nome, esta página FAZ LOGIN.
-     A página que CRIA CONTA é a login/login.php
-     (nomes trocados no projeto; manter para não quebrar links).
-     O QUE FAZ: recebe e-mail + senha via POST, autentica com
-     login_user() (functions.php) e segue para as notícias.
-     ===================================================== -->
+<!-- entrar na conta (nome trocado: cadastro.php faz o login
+     e login.php cria a conta; mantive igual) -->
 <?php
 
-// -------------------------------------------------------------
-// Sessão: login_user() grava os dados do usuário nela.
-// -------------------------------------------------------------
+// a sessao guarda os dados do usuario depois do login
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// functions.php traz login_user(), consulta_user() e a conexão
-// $conexao (database/connect.php).
+// functions.php traz login_user() e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
 // Só busca no banco quando o formulário é enviado (POST).
@@ -25,10 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
-    // login_user() (functions.php):
-    //  - busca o usuário pelo e-mail,
-    //  - confere a senha com password_verify() (contra o hash),
-    //  - renova o id da sessão e grava id/usuario/email.
+    // login_user(): acha o usuario pelo email, confere a senha
+    // (contra o hash) e grava id/usuario/email na sessao
     if (login_user($conexao, $email, $senha)) {
 
         // Logado com sucesso → vai para as notícias.
@@ -36,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         exit();
     } else {
 
-        // Usuário inexistente ou senha errada (mensagem genérica,
-        // de propósito, para não revelar qual das duas está errada).
+        // email ou senha errados (mensagem generica, pra nao
+        // revelar qual dos dois esta errado)
         $erro = "Email ou senha incorretos!";
     }
 }
@@ -166,9 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Federo&display=swap');
 
-        /* =========================================================
-           PALETAS DE CORES DISPONÍVEIS
-           ========================================================= */
+        /* paleta de cores */
         :root {
             /* Paleta 1: Azul e Branco */
             --p1-blue: #1769AA;
@@ -190,9 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             --p4-slate-gray: #708090;
             --p4-ice-white: #E8EDF2;
 
-            /* =========================================================
-               VARIÁVEIS EM USO NO SITE (Paleta 4)
-               ========================================================= */
+            /* variaveis do tema */
             --fundo: var(--p4-navy);
             /* Fundo principal */
             --card: #1C365D;
@@ -406,8 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             }
         }
     </style>
-    <!-- Menu global do site (mostra "Início" pois ainda não logou) -->
-    <?php include __DIR__ . '\..\includes\header.php'; ?>
+    <!-- menu do site (sem login ainda, entao so o inicio aparece) -->
+    
     <video controls autoplay muted width="1000">
         <source src="..\videos\video.mp4\videoperfect.mp4.png.mp4.mp4" type="video/mp4">
     </video>
@@ -449,8 +434,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
             <br><br>
 
-            <!-- Acesso restrito: só contas com tipo='admin' entram
-                 na área administrativa depois desse login -->
+            <!-- link pra area do admin (so entra conta tipo 'admin') -->
             <a href="/projetointegrador/app/admin_login.php" style="font-size: 0.75em; color: #333;">Área do Administrador</a>
 
         </form>

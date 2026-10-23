@@ -1,27 +1,13 @@
-<!-- =====================================================
-     includes/header.php — CABEÇALHO / MENU GLOBAL DO SITE
-     O QUE FAZ: exibe o menu de navegação principal.
-     POR QUÊ: sendo incluído (include) por todas as páginas,
-     o menu fica em UM lugar só — arrumar um link aqui corrige
-     em todas as páginas de uma vez (sem duplicar código).
-     DETALHE: praticamente todos os links são ABSOLUTOS,
-     com o prefixo /projetointegrador/, porque o site é
-     servido com esse prefixo virtual no servidor da escola.
-     ===================================================== -->
+<!-- menu do site; e incluido por todas as paginas,
+     entao os links ficam aqui em um lugar so -->
 <header>
 
 <?php
-// ------------------------------------------------------------------
-// Esconde o link "Início" para quem já está logado.
-// POR QUÊ (pedido do dono do site): depois do login/cadastro,
-// a página inicial (com o vídeo de abertura) sai do menu.
-// ------------------------------------------------------------------
-// Sessão ativa? Só tenta iniciar se NÃO saiu output ainda
-// (session_start() após HTML gera warning "after headers have
-// already been sent" — cabe à página iniciar a sessão antes,
-// como exige o padrão do projeto; caso o header seja incluído
-// depois de output por uma página futura, avisamos no log em
-// vez de sujar a tela com warning).
+// esconde o link "Inicio" pra quem ja esta logado
+// (a pagina inicial com o video sai do menu)
+
+// so tenta iniciar a sessao se ainda nao saiu html,
+// porque session_start() depois do html da erro
 if (session_status() == PHP_SESSION_NONE) {
     if (headers_sent()) {
         error_log("Sessão não iniciada antes de includes/header.php — a página deve chamar session_start() antes de qualquer HTML.");
@@ -30,21 +16,15 @@ if (session_status() == PHP_SESSION_NONE) {
     }
 }
 
-// Sessão logada? A chave 'id' é gravada por login_user()
-// (includes/functions.php) no login e no cadastro.
-// Ao sair da conta (logout.php / delete.php), a chave some
-// e o link "Início" volta a aparecer.
+// ta logado? a chave 'id' e gravada no login
+// e some quando sai da conta
 $esta_logado = isset($_SESSION['id']);
 
-// ------------------------------------------------------------------
-// Foto de perfil da pessoa logada, para o menu: o "Perfil" não é
-// link-texto — clicar na foto de perfil abre o perfil (pedido do
-// dono do site). Consulta só quando há sessão E conexão ($conexao
-// existe porque todas as páginas requerem functions.php antes do
-// header; index.php não, então cai no emoji padrão encapsulado).
-// ------------------------------------------------------------------
-$foto_menu   = null; // caminho absoluto da foto, quando existe
-$nome_menu   = '';   // nome para o alt/title do link
+// busca a foto de perfil pra mostrar no menu
+// (clicar na foto abre o perfil). so roda se
+// tiver sessao e conexao com o banco
+$foto_menu   = null; // caminho da foto, quando existe
+$nome_menu   = '';   // nome pro alt da imagem
 
 if ($esta_logado && isset($conexao) && $conexao instanceof PDO) {
     $stmt_menu = $conexao->prepare(
@@ -58,8 +38,8 @@ if ($esta_logado && isset($conexao) && $conexao instanceof PDO) {
     if ($perfil_menu) {
         $nome_menu   = htmlspecialchars($perfil_menu['name_sobrenome'], ENT_QUOTES, 'UTF-8');
         if (!empty($perfil_menu['foto_perfil'])) {
-            // Mesma pasta Padronizada pelo app/update.php, com
-            // rawurlencode protege espaços/símbolos do nome do arquivo.
+            // mesma pasta usada pelo update.php;
+            // rawurlencode protege o nome do arquivo na url
             $foto_menu = '/projetointegrador/imagens/perfis/'
                 . rawurlencode($perfil_menu['foto_perfil']);
         }
@@ -71,19 +51,12 @@ if ($esta_logado && isset($conexao) && $conexao instanceof PDO) {
 
         <div>
 
-            <!--
-                 Folha de estilos do site (ainda não criada no repo —
-                 ver pendência em AGENTS.md).
-            -->
+            <!-- css do site (o arquivo ainda nao existe) -->
             <link rel="stylesheet" href="../css/style.css">
 
-            <!-- Estilo próprio do item "foto de perfil" do menu
-                 (enquanto css/style.css não existe; sem duplicar o
-                 que já é usado dentro das páginas de perfil). -->
+            <!-- estilo da foto de perfil no menu -->
             <style>
-                /* Menu centralizado na página: links e a foto de perfil
-                   formam um único grupo no meio, a foto logo após o
-                   último link (pedido do dono do site). */
+                /* menu centralizado, a foto fica depois dos links */
                 nav            { display: flex; justify-content: center; align-items: center; }
                 .menu-perfil   { margin-left: 12px; text-decoration: none; }
                 .menu-foto     { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
@@ -91,36 +64,28 @@ if ($esta_logado && isset($conexao) && $conexao instanceof PDO) {
             </style>
 
 <?php if (!$esta_logado): ?>
-            <!-- Visitante (sem sessão): NÃO pode entrar no site
-                 pelo header (pedido do dono do site). O único link
-                 é o "Início" (página de abertura) — Notícias,
-                 Àlbuns, Álbuns solo e Linhas do tempo aparecem
-                 apenas para quem está logado. -->
+            <!-- quem nao esta logado so ve o inicio,
+                 as outras paginas aparecem so no menu logado -->
             <a href="/projetointegrador/index.php"> Início </a>
 <?php else: ?>
-            <!-- Página com as notícias externas + blog e comentários -->
+            <!-- pagina de noticias (blog + comentarios) -->
             <a href="/projetointegrador/pages/noticias.php"> Notícias |</a>
 
-            <!-- Página com os álbuns da banda -->
+            <!-- albuns da banda -->
             <a href="/projetointegrador/pages/albuns.php"> Àlbuns |</a>
 
-            <!-- Página com os álbuns solo de cada integrante -->
+            <!-- albuns solo de cada integrante -->
             <a href="/projetointegrador/pages/albunssolos.php"> Álbuns solo |</a>
 
-            <!-- Página com as fotos por período -->
+            <!-- fotos por periodo (linha do tempo) -->
             <a href="/projetointegrador/pages/linhadotempo.php"> Linhas do tempo | </a>
 <?php endif; ?>
 
              <a href="/projetointegrador/pages/integrantes.php"> Integrantes| </a>
 
 <?php if ($esta_logado): ?>
-            <!-- Perfil da pessoa logada: NÃO é link-texto; clicar na
-                 foto de perfil abre o perfil (pedido do dono do site,
-                 o mesmo comportamento de app/perfil.php e app/update.php).
-                 Fica na MESMA LINHA dos outros links (dentro do mesmo
-                 div) com um espaçamento maior à esquerda. Sem foto
-                 cadastrada, aparece o emoji padrão 👤 de app/perfil.php
-                 — continua clicável. -->
+            <!-- a foto abre o perfil (como no app/perfil.php);
+                 sem foto cadastrada aparece o emoji padrao -->
             <a class="menu-perfil" href="/projetointegrador/app/perfil.php" title="Ver meu perfil">
                 <?php if ($foto_menu !== null): ?>
                     <img class="menu-foto"

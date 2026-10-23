@@ -1,18 +1,12 @@
-<!-- =====================================================
-     login/atualiza_perfil.php — ATUALIZAR CONTA (nome/e-mail)
-     O QUE FAZ: permite à pessoa logada trocar nome e e-mail.
-     POR QUÊ: versão antiga dessa função; a página completa é
-     app/update.php (que também troca senha e foto). Mantida
-     como página de edição simples do projeto.
-     ===================================================== -->
+<!-- atualizar conta: so nome e email (a completa e o app/update.php) -->
 <?php
 
-// Sessão: atualiza os dados guardados após o UPDATE.
+// a sessao e atualizada depois que salva no banco
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Guarda de login + funções + $conexao.
+// exige login; functions.php traz as funcoes e a conexao
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../login/verificauser.php';
@@ -20,15 +14,14 @@ require_once __DIR__ . '/../login/verificauser.php';
 // Só faz algo quando o formulário é enviado (POST).
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // Pega o e-mail atual da sessão: é ele que localiza a conta
-    // no banco (a referência antes da troca).
+    // o email ATUAL da sessao e o que acha a conta no banco
     $email_atual = $_SESSION['email'];
 
     $nome  = trim($_POST['name_sobrenome']);
     $email = trim($_POST['email']);
 
-    // Verifica se o novo e-mail já pertence a outro usuário.
-    // ("AND email <> :email_atual" ignora a própria conta.)
+    // confere se o email novo ja e de outro usuario
+    // (ignora a propria conta)
     $sql = "SELECT email FROM usuarios
             WHERE email = :email AND email <> :email_atual";
 
@@ -44,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } else {
 
-        // UPDATE usando o e-mail ATUAL como chave de localização.
+        // update usando o email atual pra achar a conta
         $sql = "UPDATE usuarios
                 SET name_sobrenome = :nome, email = :email
                 WHERE email = :email_atual";
@@ -56,8 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':email_atual' => $email_atual
         ]);
 
-        // Atualiza os dados guardados na sessão: montante importante,
-        // porque páginas do perfil pesquisam por $_SESSION['email'].
+        // atualiza a sessao com os dados novos
         $_SESSION['usuario'] = $nome;
         $_SESSION['email']   = $email;
 

@@ -1,20 +1,12 @@
-<!-- =====================================================
-     app/admin_login.php — LOGIN PRÓPRIO DA ADMINISTRAÇÃO
-     O QUE FAZ: página dedicada para o administrador entrar.
-     POR QUÊ: usa as mesmas credenciais dos usuários, mas só
-     libera quem tem tipo='admin' na tabela usuarios —
-     usuário comum que fizer login aqui recebe mensagem de
-     acesso negado e não vê nada da administração.
-     ===================================================== -->
+<!-- login da area do admin: so entra quem e admin -->
 <?php
 
-// Sessão: guarda os dados do admin quando autentica.
+// sessao pra guardar os dados do admin quando loga
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// functions.php: login_user() faz a autenticação
-// (password_verify + dados na sessão) e traz $conexao.
+// functions.php traz login_user() e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
 $mensagem = '';
@@ -23,11 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
-    // 1) Autentica igual ao site inteiro (senha com hash).
+        // loga igual no resto do site (senha com hash)
     if (login_user($conexao, $email, $senha)) {
 
-        // 2) Confere se a conta é administradora
-        //    (SELECT com WHERE pelo e-mail da sessão).
+        // depois confere se a conta e admin
         $sql = "SELECT tipo FROM usuarios WHERE email = :email";
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':email', $_SESSION['email']);
@@ -35,16 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($resultado && $resultado['tipo'] === 'admin') {
-            // Admin confirmado → área do administrador.
+            // admin confirmado → abre a area do admin
             header('Location: /projetointegrador/app/admin.php');
             exit();
         }
 
-        // Usuário comum não entra na administração.
+        // usuario comum nao entra na area do admin
         $mensagem = 'Esta conta não é de administrador.';
 
     } else {
-        // Credenciais erradas (mensagem genérica de propósito).
+        // email ou senha errados (mensagem generica)
         $mensagem = 'E-mail ou senha incorretos.';
     }
 }
@@ -61,8 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Administration | One Direction</title>
 
     <style>
-        /* Tema escuro + vinho para diferenciar a área restrita
-         do restante do site (que é claro/rosado) */
+        /* tema escuro pra diferenciar a area do admin */
         body {
             background-color: #262626;
             color: #ffffff;
@@ -160,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="mensagem"><?php echo htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8'); ?></p>
         <?php endif; ?>
 
-        <!-- POST para a própria página -->
+        <!-- POST pra propria pagina -->
         <form action="" method="POST">
 
             <label for="email">E-mail:</label>
@@ -173,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         </form>
 
-        <!-- Fuga para o site público (sem precisar logar) -->
+        <!-- volta pro site sem precisar logar -->
         <a href="/projetointegrador/pages/noticias.php" class="voltar">&lsaquo; Voltar para o site</a>
     </main>
 

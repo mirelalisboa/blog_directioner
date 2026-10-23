@@ -1,34 +1,23 @@
-<!-- =====================================================
-     pages/noticias.php — NOTÍCIAS E BLOG (comentários)
-     O QUE FAZ 1: página pública das notícias — vídeo, links
-     externos de notícias e o blog do banco (notícias + comentá-
-     rios com formulários discretos).
-     O QUE FAZ 2: permite ao usuário logado PUBLICAR notícia e
-     COMENTAR — via cadastra_noticia()/adiciona_comentario().
-     POR QUÊ: página central da comunidade do site.
-     ===================================================== -->
+<!-- pagina das noticias: blog com curtir/favoritar/comentar -->
 <?php
 
-// Sessão: guardas de login precisam dela; o "tipo" do POST
-// decide se gravamos notícia ou comentário.
+// sessao pro login; o 'tipo' do post decide o que gravar
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Guardas: exige login para publicar/comentar.
+// exige login pra usar a pagina
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../login/verificauser.php';
 // functions.php: funções de blog + $conexao.
 require_once __DIR__ . '/../includes/functions.php';
 
-// $conexao do banco (vinda por functions.php); id do usuário
-// logado (o guard acima garante que existe) — usado por curtir/favoritar.
+// id do usuario logado (usado pra curtir/favoritar)
 $usuario_id = (int) ($_SESSION['id'] ?? 0);
 
 $mensagem = '';
 
-// Salva notícia ou comentário quando o formulário é enviado
-// (POST). Cada form tem um campo hidden "tipo" que decide o que gravar.
+// cada form manda o campo hidden 'tipo' que decide o que gravar
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = $_POST['tipo'] ?? '';
 
@@ -41,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensagem = 'Preencha o título e o texto da notícia.';
             }
         }
-        // Comentar uma notícia (form de cada card)
+        // comentar uma noticia
         elseif ($tipo === 'comentario') {
-            // noticia_id vem hidden do formulário do card.
+            // o noticia_id vem hidden do form do card
             if (adiciona_comentario($conexao, $_POST['noticia_id'] ?? 0, $_POST['comentario'] ?? '')) {
                 $mensagem = 'Comentário adicionado com sucesso!';
             } else {
@@ -71,8 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Notícias do banco (mais recentes primeiro), cada uma com
-// seus comentários (buscados no loop de exibição).
+// noticias do banco (mais novas primeiro)
 $noticias = listar_noticias($conexao);
 $total = count($noticias);
 
@@ -452,14 +440,13 @@ $total = count($noticias);
     <!-- Menu global -->
  <?php include __DIR__ . '/../includes/header.php'; ?>
 <hr><br>
-    <!-- Vídeo de abertura (a pasta tem nomes estranhos — não renomear) -->
+<!-- video de abertura (nome do arquivo e assim mesmo) -->
     <video width="1000" controls autoplay muted>
           <source src="..\videos\video.mp4\videoonet.mp4.png.mp4.mp4" type="video/mp4">
       </video>
 
 
-<!-- ================= NOTÍCIAS E COMENTÁRIOS DO BLOG =================
-     (conteúdo vindo do banco: noticias + comentarios) -->
+<!-- blog: noticias e comentarios vindos do banco -->
 
 <div class="blog">
 
@@ -497,9 +484,8 @@ $total = count($noticias);
         <p style="color:#8b8b8b; font-size:0.88em;">Nenhuma notícia publicada ainda.</p>
     <?php endif; ?>
 
-    <!-- Um card por notícia, cada uma com seus comentários.
-         id="noticia-X": âncora para o atalho "Ver no blog"
-         vindo do perfil -->
+    <!-- um card por noticia; o anchor id="noticia-X" e usado
+         pelo atalho "Ver no blog" do perfil -->
     <?php foreach ($noticias as $item): ?>
         <div class="card" id="noticia-<?php echo (int) $item['id']; ?>">
             <h3><?php echo htmlspecialchars($item['titulo'], ENT_QUOTES, 'UTF-8'); ?></h3>
@@ -519,16 +505,15 @@ $total = count($noticias);
             <?php endif; ?>
 
             <?php
-            // Contagem de curtidas + estado do usuário logado
-            // (pinta os botões quando ele já curtiu/favoritou).
+            // curtidas + se o usuario ja curtiu/favoritou
+            // (pinta os botoes)
             $curtidas  = contar_curtidas($conexao, $item['id']);
             $curtiu    = usuario_curtiu($conexao, $item['id'], $usuario_id);
             $favoritou = usuario_favoritou($conexao, $item['id'], $usuario_id);
             ?>
 
-            <!-- Curtir + Favoritar: cada card tem seus formulários
-                 com input hidden noticia_id; o POST recarrega a
-                 página já mostrando o novo estado -->
+            <!-- curtir/favoritar: o hidden noticia_id identifica o
+                 card; o post recarrega a pagina com o estado novo -->
             <div class="acoes">
                 <form method="POST" action="#">
                     <input type="hidden" name="tipo" value="curtir">

@@ -1,25 +1,12 @@
 <?php
-// =====================================================
-// includes/functions.php — BIBLIOTECA CENTRAL DO SITE
-// O QUE FAZ: concentra TODAS as funções de dados que o
-// site usa (CRUD de usuários e do blog, login/sessão,
-// guardas, pesquisa/exclusão para o admin).
-// POR QUÊ: qualquer página que precisar de banco obtém
-// $conexao por aqui (o require abaixo já abre a conexão) —
-// é por isso que as páginas incluem functions.php e não
-// database/connect.php diretamente.
-// Padrões adotados em todas as funções:
-//  - prepared statements (bindValue/execução com array);
-//  - catch PDOException → log (error_log) e false/[] ;
-//  - validação dos parâmetros antes de qualquer SQL.
-// =====================================================
+// funcoes que o site inteiro usa (usuarios, noticias,
+// curtidas, comentarios, login). incluir esse arquivo
+// tambem abre a conexao ($conexao vem da linha abaixo)
 
 require_once __DIR__ . '/../database/connect.php';
 
 
-// ======================================================
-// CREATE: CADASTRAR USUÁRIO
-// ======================================================
+// cadastra um usuario novo (insert na tabela usuarios)
 
 
 function cadastra_user($conexao, $nome, $email, $senha)
@@ -68,10 +55,7 @@ function cadastra_user($conexao, $nome, $email, $senha)
 
 
 
-// ======================================================
-// SELECT COM WHERE: BUSCAR USUÁRIO PELO EMAIL
-// Usado no login.
-// ======================================================
+// busca o usuario pelo email (usado no login)
 
 function consulta_user($conexao, $email)
 {
@@ -94,10 +78,7 @@ function consulta_user($conexao, $email)
 }
 
 
-// ======================================================
-// SELECT COM WHERE: BUSCAR DADOS PELO EMAIL
-// Para preencher automaticamente os campos.
-// ======================================================
+// busca nome e email pelo email (pro preencher o formulario)
 
 function consultar_por_email($conexao, $email)
 {
@@ -120,10 +101,7 @@ function consultar_por_email($conexao, $email)
 }
 
 
-// ======================================================
-// SELECT COM WHERE: CONSULTAR PERFIL PELO ID
-// Busca os dados do usuário conectado.
-// ======================================================
+// busca os dados do perfil pelo id
 
 function consultar_perfil($conexao, $id)
 {
@@ -146,10 +124,7 @@ function consultar_perfil($conexao, $id)
 }
 
 
-// ======================================================
-// SELECT: LISTAR TODOS OS USUÁRIOS
-// Para relatórios da área administrativa.
-// ======================================================
+// lista todos os usuarios cadastrados
 
 function selecionar_usuarios($conexao)
 {
@@ -169,9 +144,7 @@ function selecionar_usuarios($conexao)
 }
 
 
-// ======================================================
-// UPDATE: ATUALIZAR NOME E EMAIL
-// ======================================================
+// atualiza nome e email do usuario
 
 function atualizar_user($conexao, $id, $nome, $email)
 {
@@ -198,9 +171,7 @@ function atualizar_user($conexao, $id, $nome, $email)
 }
 
 
-// ======================================================
-// UPDATE: ALTERAR SENHA
-// ======================================================
+// troca a senha do usuario (gravando o hash)
 
 function atualizar_senha($conexao, $id, $senha)
 {
@@ -228,9 +199,7 @@ function atualizar_senha($conexao, $id, $senha)
 }
 
 
-// ======================================================
-// DELETE: EXCLUIR USUÁRIO PELO EMAIL
-// ======================================================
+// exclui o usuario pelo email (delete)
 
 // Função para excluir um usuário pelo e-mail.
 function excluir_user($conexao, $email)
@@ -263,10 +232,7 @@ function excluir_user($conexao, $email)
 
 
 
-// ======================================================
-// FUNÇÃO PARA CRIAR UMA CONTA NOVA
-// Separada da função de login.
-// ======================================================
+// cria conta: valida e chama cadastra_user()
 
 function criar_conta($conexao, $nome, $email, $senha)
 {
@@ -291,10 +257,7 @@ function criar_conta($conexao, $nome, $email, $senha)
 }
 
 
-// ======================================================
-// FUNÇÃO PARA FAZER LOGIN
-// Busca o usuário e verifica a senha.
-// ======================================================
+// login: acha o usuario e confere a senha
 
 function login_user($conexao, $email, $senha)
 {
@@ -311,7 +274,7 @@ function login_user($conexao, $email, $senha)
         session_start();
     }
 
-    // Renova o identificador da sessão.
+// renova o id da sessao por seguranca
     session_regenerate_id(true);
 
     // Guarda os dados necessários do usuário na sessão.
@@ -338,10 +301,7 @@ function verifica_user()
 }
 
 
-// ======================================================
-// CREATE: ADICIONAR NOTÍCIA (blog)
-// Usado por pages/noticias.php.
-// ======================================================
+// adiciona uma noticia no blog (insert)
 
 function cadastra_noticia($conexao, $titulo, $noticia, $foto, $link)
 {
@@ -368,10 +328,7 @@ function cadastra_noticia($conexao, $titulo, $noticia, $foto, $link)
 }
 
 
-// ======================================================
-// CREATE: COMENTÁRIO EM UMA NOTÍCIA
-// Usado por pages/noticias.php.
-// ======================================================
+// adiciona um comentario em uma noticia
 
 function adiciona_comentario($conexao, $noticia_id, $comentario)
 {
@@ -408,9 +365,7 @@ function adiciona_comentario($conexao, $noticia_id, $comentario)
 }
 
 
-// ======================================================
-// SELECT: LISTAR NOTÍCIAS (mais recentes primeiro)
-// ======================================================
+// lista as noticias do blog (mais novas primeiro)
 
 function listar_noticias($conexao)
 {
@@ -427,10 +382,7 @@ function listar_noticias($conexao)
 }
 
 
-// ======================================================
-// SELECT: LISTAR COMENTÁRIOS DE UMA NOTÍCIA
-// Retorna [] se não houver comentários.
-// ======================================================
+// lista os comentarios de uma noticia
 
 function listar_comentarios($conexao, $noticia_id)
 {
@@ -451,12 +403,7 @@ function listar_comentarios($conexao, $noticia_id)
 }
 
 
-// ======================================================
-// ADMIN: PESQUISAR NOTÍCIAS (SELECT com WHERE)
-//
-// Busca por trecho do título; se o termo for numérico,
-// localiza pelo id exato.
-// ======================================================
+// pesquisa noticias pelo titulo (id exato se for numero)
 
 function pesquisar_noticias($conexao, $termo)
 {
@@ -499,11 +446,7 @@ function pesquisar_noticias($conexao, $termo)
 }
 
 
-// ======================================================
-// ADMIN: EXCLUIR NOTÍCIA PELO ID
-// Os comentários vinculados são removidos pelo banco
-// (ON DELETE CASCADE).
-// ======================================================
+// exclui noticia pelo id (os comentarios somem junto no banco)
 
 function excluir_noticia($conexao, $id)
 {
@@ -528,13 +471,8 @@ function excluir_noticia($conexao, $id)
 }
 
 
-// ======================================================
-// LIKE: CURTIR / DESCURTIR UMA NOTÍCIA (toggle)
-//
-// Tabela curtidas tem par único (noticia_id, usuario_id),
-// então cada usuário curte cada notícia uma só vez.
-// Devolve true = curtiu, false = descurtiu (ou erro logado).
-// ======================================================
+// curtir/descurtir noticia (toggle): true curtiu, false descurtiu.
+// cada usuario so tem uma curtida por noticia (par unico na tabela)
 
 function alternar_curtida($conexao, $noticia_id, $usuario_id)
 {
@@ -578,10 +516,7 @@ function alternar_curtida($conexao, $noticia_id, $usuario_id)
 }
 
 
-// ======================================================
-// LIKE: TOTAL DE CURTIDAS DE UMA NOTÍCIA
-// (para exibir o contador no card)
-// ======================================================
+// total de curtidas da noticia (pro contador no card)
 
 function contar_curtidas($conexao, $noticia_id)
 {
@@ -600,10 +535,7 @@ function contar_curtidas($conexao, $noticia_id)
 }
 
 
-// ======================================================
-// LIKE: ESTE USUÁRIO JÁ CURTIU ESTA NOTÍCIA?
-// (pinta o botão no estado "curtido")
-// ======================================================
+// checa se esse usuario ja curtiu a noticia (pinta o botao)
 
 function usuario_curtiu($conexao, $noticia_id, $usuario_id)
 {
@@ -625,10 +557,7 @@ function usuario_curtiu($conexao, $noticia_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: FAVORITAR / REMOVER FAVORITO (toggle)
-// Mesma lógica do toggle de curtidas, na tabela favoritos.
-// ======================================================
+// favoritar/desfavoritar noticia (mesma logica da curtida)
 
 function alternar_favorito($conexao, $noticia_id, $usuario_id)
 {
@@ -672,9 +601,7 @@ function alternar_favorito($conexao, $noticia_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: ESTE USUÁRIO FAVORITOU ESTA NOTÍCIA?
-// ======================================================
+// checa se o usuario ja favoritou a noticia
 
 function usuario_favoritou($conexao, $noticia_id, $usuario_id)
 {
@@ -696,16 +623,11 @@ function usuario_favoritou($conexao, $noticia_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: LISTAR AS NOTÍCIAS FAVORITAS DO USUÁRIO
-// (para a seção "Notícias favoritas" do perfil)
-// Devolve as notícias + total de curtidas de cada uma.
-// ======================================================
+// lista as noticias favoritas do usuario (pro perfil)
 
 function listar_favoritos($conexao, $usuario_id)
 {
-    // JOIN: favoritos liga à notícia real; o sub_select conta
-    // as curtidas de cada notícia para exibir no perfil.
+    // join pega a noticia e o subselect conta as curtidas dela
     $sql = "SELECT n.id, n.titulo, n.noticia, n.foto, n.link,
                    (SELECT COUNT(*) FROM curtidas c
                     WHERE c.noticia_id = n.id) AS curtidas
@@ -727,21 +649,13 @@ function listar_favoritos($conexao, $usuario_id)
 }
 
 
-// ======================================================
-// ÁLBUNS: CARDS INTERATIVOS (curtir/favoritar/comentar)
-// Mesma mecânica das funções de blog acima, agora ligada à
-// tabela albuns (script database/albuns.sql cria as tabelas).
-// O campo tipo decide a página do card:
-//   'banda' → pages/albuns.php (um card por álbum do grupo)
-//   'solo'  → pages/albunssolos.php (um card por integrante)
-// ======================================================
+// interacoes dos albuns (curtir/favoritar/comentar),
+// mesma logica das noticias. na tabela albuns o campo
+// tipo separa 'banda' (pages/albuns.php) de 'solo'
+// (pages/albunssolos.php)
 
 
-// ======================================================
-// SELECT: LISTAR OS ÁLBUNS DE UMA PÁGINA (banda ou solo)
-// Ordem fixa do cadastro (coluna ordem, depois id).
-// Retorna [] se não houver álbuns (ou erro logado).
-// ======================================================
+// lista os albuns de uma pagina (banda ou solo), na ordem do cadastro
 
 function listar_albuns($conexao, $tipo)
 {
@@ -768,10 +682,7 @@ function listar_albuns($conexao, $tipo)
 }
 
 
-// ======================================================
-// CREATE: COMENTÁRIO EM UM ÁLBUM
-// Usado por pages/albuns.php e pages/albunssolos.php.
-// ======================================================
+// adiciona comentario em um album
 
 function adiciona_comentario_album($conexao, $album_id, $comentario)
 {
@@ -808,10 +719,7 @@ function adiciona_comentario_album($conexao, $album_id, $comentario)
 }
 
 
-// ======================================================
-// SELECT: LISTAR COMENTÁRIOS DE UM ÁLBUM
-// Retorna [] se não houver comentários.
-// ======================================================
+// lista os comentarios de um album
 
 function listar_comentarios_album($conexao, $album_id)
 {
@@ -832,12 +740,7 @@ function listar_comentarios_album($conexao, $album_id)
 }
 
 
-// ======================================================
-// LIKE: CURTIR / DESCURTIR UM ÁLBUM (toggle)
-// Tabela album_curtidas tem par único (album_id, usuario_id),
-// então cada usuário curte cada álbum uma só vez.
-// Devolve true = curtiu, false = descurtiu (ou erro logado).
-// ======================================================
+// curtir/descurtir album (toggle, par unico na tabela)
 
 function alternar_curtida_album($conexao, $album_id, $usuario_id)
 {
@@ -881,10 +784,7 @@ function alternar_curtida_album($conexao, $album_id, $usuario_id)
 }
 
 
-// ======================================================
-// LIKE: TOTAL DE CURTIDAS DE UM ÁLBUM
-// (para exibir o contador no card)
-// ======================================================
+// total de curtidas do album (pro contador no card)
 
 function contar_curtidas_album($conexao, $album_id)
 {
@@ -903,10 +803,7 @@ function contar_curtidas_album($conexao, $album_id)
 }
 
 
-// ======================================================
-// LIKE: ESTE USUÁRIO JÁ CURTIU ESTE ÁLBUM?
-// (pinta o botão no estado "curtido")
-// ======================================================
+// checa se o usuario ja curtiu o album (pinta o botao)
 
 function usuario_curtiu_album($conexao, $album_id, $usuario_id)
 {
@@ -928,10 +825,7 @@ function usuario_curtiu_album($conexao, $album_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: FAVORITAR / REMOVER FAVORITO DE ÁLBUM (toggle)
-// Mesma lógica do toggle de curtidas, na tabela album_favoritos.
-// ======================================================
+// favoritar/desfavoritar album (mesma logica da curtida)
 
 function alternar_favorito_album($conexao, $album_id, $usuario_id)
 {
@@ -975,9 +869,7 @@ function alternar_favorito_album($conexao, $album_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: ESTE USUÁRIO FAVORITOU ESTE ÁLBUM?
-// ======================================================
+// checa se o usuario ja favoritou o album
 
 function usuario_favoritou_album($conexao, $album_id, $usuario_id)
 {
@@ -999,16 +891,11 @@ function usuario_favoritou_album($conexao, $album_id, $usuario_id)
 }
 
 
-// ======================================================
-// FAVORITO: LISTAR OS ÁLBUNS FAVORITOS DO USUÁRIO
-// (para a seção "Meus álbuns favoritos" do perfil)
-// Devolve o álbum (título, tipo) + total de curtidas de cada um.
-// ======================================================
+// lista os albuns favoritos do usuario (pro perfil)
 
 function listar_favoritos_albuns($conexao, $usuario_id)
 {
-    // JOIN: album_favoritos liga ao álbum real; o sub_select
-    // conta as curtidas de cada álbum para exibir no perfil.
+    // join pega o album e o subselect conta as curtidas dele
     $sql = "SELECT a.id, a.titulo, a.tipo,
                    (SELECT COUNT(*) FROM album_curtidas c
                     WHERE c.album_id = a.id) AS curtidas
@@ -1030,15 +917,9 @@ function listar_favoritos_albuns($conexao, $usuario_id)
 }
 
 
-// ======================================================
-// ÁLBUNS: IMPRIME AS INTERAÇÕES DE UM BLOCO
-// (curtir + favoritar + comentários), no mesmo molde do
-// blog de notícias. Usado por pages/albuns.php e pages/
-// albunssolos.php para não repetir o HTML 10 vezes: recebe
-// o registro do álbum (vindo de listar_albuns) e o id do
-// usuário logado. Sem registro (banco sem cadastro ainda)
-// não imprime nada — a página fica como era.
-// ======================================================
+// imprime curtir/favoritar/comentarios de um card de album.
+// recebe o album (de listar_albuns) e o id do usuario logado;
+// sem registro no banco, nao imprime nada e a pagina fica igual
 
 function interacoes_album($conexao, $album, $usuario_id)
 {
@@ -1049,8 +930,8 @@ function interacoes_album($conexao, $album, $usuario_id)
 
     $album_id = (int) $album['id'];
 
-    // Contagem de curtidas + estado do usuário logado
-    // (pinta os botões quando ele já curtiu/favoritou).
+    // conta as curtidas e ve se o usuario ja
+    // curtiu/favoritou (pinta os botoes)
     $curtidas    = contar_curtidas_album($conexao, $album_id);
     $curtiu      = usuario_curtiu_album($conexao, $album_id, $usuario_id);
     $favoritou   = usuario_favoritou_album($conexao, $album_id, $usuario_id);

@@ -1,23 +1,16 @@
-<!-- =====================================================
-     app/select.php — LISTAGEM DE TODOS OS USUÁRIOS
-     O QUE FAZ: SELECT simples (sem WHERE), ORDER BY nome,
-     exibe a lista completa em tabela de consulta.
-     POR QUÊ: página de relatório/consulta rápida dos cadastros
-     (não é a área admin; a lista do admin fica em admin.php).
-     ===================================================== -->
+<!-- lista todos os usuarios cadastrados (tabela de consulta) -->
 <?php
 
-// Sessão ativa para o guarda de login.
+// sessao pro arquivo de login
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Exige login; functions.php fornece $conexao.
+// exige login; functions.php traz a conexao
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Consulta os usuários cadastrados.
-// (SELECT sem WHERE: devolve todas as linhas da tabela.)
+// pega todos os usuarios do banco (select sem where)
 $sql = "SELECT name_sobrenome, email
         FROM usuarios
         ORDER BY name_sobrenome";
@@ -42,7 +35,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <?php if ($usuarios): ?>
 
-        <!-- Tabela simples de relatório (border=1 no estilo antigo) -->
+        <!-- tabela de consulta -->
         <table border="1">
             <tr>
                 <th>Nome completo</th>

@@ -1,40 +1,25 @@
-<!-- =====================================================
-     pages/albuns.php — ÁLBUNS DA BANDA
-     O QUE FAZ: lista os 5 álbuns de estúdio do One Direction
-     com descrição curta e atalho para ouvir no YouTube.
-     COMPLEMENTO: cada bloco também tem curtir/favoritar/
-     comentários (a mesma interação do blog de notícias),
-     ligada à tabela albuns do banco (script database/
-     albuns.sql) via includes/functions.php.
-     POR QUÊ: página pública de consulta, no padrão visual do
-     site (protegida por login: requere sessão ativa).
-     ===================================================== -->
+<!-- albuns da banda: 5 blocos com curtir/favoritar/comentar -->
 <?php
 
-// Nomes/ordem dos álbuns em variáveis: a lógica PHP separa
-// dados do layout (o HTML abaixo só exibe as variáveis).
+// nomes dos albuns em variaveis (o html de baixo so exibe)
 $album1 = "Up All Night";
 $album2 = "Take Me Home";
 $album3 = "Midnight Memories";
 $album4 = "FOUR";
 $album5 = "Made In The A.M.";
 
-// Guardas de login (incluem o session_start()).
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../login/verificauser.php';
-// functions.php: $conexao + curtir/favoritar/comentar álbuns
-// (mesma mecânica das notícias).
+// functions.php traz funcoes de album e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
-// id do usuário logado (o guard acima garante que existe) —
-// usado por curtir/favoritar.
+// id do usuario logado (usado pra curtir/favoritar)
 $usuario_id = (int) ($_SESSION['id'] ?? 0);
 
 $mensagem = '';
 
-// Salva comentário/curtida/favorito quando um formulário dos
-// blocos é enviado (POST). Cada form traz o campo hidden
-// "tipo" (a ação) e "album_id" (o álbum do bloco).
+// cada form manda hidden 'tipo' (acao) e 'album_id' (o album)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = $_POST['tipo'] ?? '';
 
@@ -65,10 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Registros dos álbuns da banda no banco, indexados pelo
-// título: cada bloco abaixo busca o seu. Se o banco ainda
-// não tiver o cadastro (database/albuns.sql), os blocos de
-// interação simplesmente não aparecem — a página fica igual.
+// albuns do banco indexados pelo titulo; sem cadastro no banco,
+// os blocos de interacao simplesmente nao aparecem
 $albuns_por_titulo = [];
 foreach (listar_albuns($conexao, 'banda') as $linha) {
     $albuns_por_titulo[$linha['titulo']] = $linha;
@@ -360,8 +343,7 @@ foreach (listar_albuns($conexao, 'banda') as $linha) {
 
     <hr>
 
-    <!-- ==== Bloco de cada álbum: título do banco de variáveis,
-         texto fixo de conteúdo e botão de busca no YouTube ==== -->
+    <!-- bloco de cada album: titulo + texto + botao do youtube -->
     <h2>
         <?php echo $album1; ?>
     </h2>
@@ -373,12 +355,11 @@ foreach (listar_albuns($conexao, 'banda') as $linha) {
         e One Thing.
     </p>
 
-    <!-- onclick abre a busca do YouTube em outra aba -->
+    <!-- abre a busca do youtube -->
     <input type="button" value="Ouvir no YouTube"
     onclick="window.location.href='https://www.youtube.com/results?search_query=One+Direction+Up+All+Night+album'">
 
-    <!-- Interações deste álbum (curtir/favoritar/comentar);
-         o registro é achado pelo título do bloco -->
+    <!-- curtir/favoritar/comentar deste album (achado pelo titulo) -->
     <?php interacoes_album($conexao, $albuns_por_titulo[$album1] ?? null, $usuario_id); ?>
 
     <hr>

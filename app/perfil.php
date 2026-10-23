@@ -1,37 +1,27 @@
-<!-- =====================================================
-     app/perfil.php — MEU PERFIL
-     O QUE FAZ: mostra os dados da conta logada (nome, e-mail,
-     foto) e os atalhos para atualizar/excluir a conta, além dos
-     botões de volta para as outras páginas do site.
-     POR QUÊ: centralizador da conta do usuário dentro de app/.
-     DEPENDÊNCIAS: verificalogin.php + verificauser.php (guardas)
-     e $conexao (vinda por functions.php).
-     ===================================================== -->
+<!-- meu perfil: dados da conta, foto e favoritos -->
 <?php
 
-// Sessão: precisamos do id (guardas) e do e-mail (busca no perfil).
+// sessao: o id e checado pelos arquivos de login, o email acha o perfil
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1º guarda: exige login (manda para a home se vazio).
+// primeiro arquivo que exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
-// functions.php: funções + $conexao do banco.
+// functions.php traz as funcoes e a conexao
 require_once __DIR__ . '/../includes/functions.php';
-// 2º guarda: reforço de sessão que também redireciona.
+// reforco da checagem de login
 require_once __DIR__ . '/../login/verificauser.php';
 
-// Sem e-mail na sessão não há como localizar o perfil.
-// (a chave é gravada no login e no cadastro).
+// sem email na sessao nao da pra achar o perfil
 if (empty($_SESSION['email'])) {
     header('Location: /projetointegrador/index.php');
     exit();
 }
 
 // ------------------------------------------------------------------
-// SELECT com WHERE: busca os dados pelo e-mail da sessão.
-// foto_perfil é o NOME do arquivo gravado pelo app/update.php
-// (quando existe, a imagem vive em /imagens/perfis/).
+// busca os dados pelo email da sessao; foto_perfil
+// e o nome do arquivo salvo pelo update.php
 // ------------------------------------------------------------------
 $sql = "SELECT name_sobrenome, email, foto_perfil
         FROM usuarios
@@ -44,8 +34,8 @@ $stmt->execute([
 
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// E-mail da sessão não existe mais no banco? (conta apagada
-// em outra aba, por exemplo) → mensagem e fim.
+// se o email nao existir mais no banco (conta apagada),
+// mostra erro e para
 if (!$usuario) {
     echo "Não foi possível encontrar seu perfil.";
     exit();
@@ -59,7 +49,7 @@ if (!$usuario) {
     <title>Meu perfil</title>
 
     <style>
-        /* Página limpa, fundo claro, cartão central */
+        /* fundo claro com cartao central */
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
@@ -76,7 +66,7 @@ if (!$usuario) {
             text-align: center;
         }
 
-        /* Moldura redonda da foto de perfil */
+        /* foto redonda */
         .foto-perfil {
             width: 130px;
             height: 130px;
@@ -101,7 +91,7 @@ if (!$usuario) {
             margin: 15px 0;
         }
 
-        /* Fileira de botões (atualizar/excluir + voltar) */
+        /* fileira de botoes */
         .botoes {
             display: flex;
             justify-content: center;
@@ -119,7 +109,7 @@ if (!$usuario) {
             color: white;
         }
 
-        /* Bloco das notícias favoritas do usuário */
+        /* bloco das noticias favoritas */
         .favoritas {
             margin-top: 28px;
             text-align: left;
@@ -163,9 +153,7 @@ if (!$usuario) {
 
     <h1>Meu perfil</h1>
 
-    <!-- Foto de perfil: exibe a imagem enviada na atualização
-         de conta (rawurlencode protege espaços/símbolos do nome
-         do arquivo) ou o emoji padrão quando não tem foto. -->
+    <!-- foto enviada no update.php, ou o emoji padrao -->
     <div class="foto-perfil">
         <?php if (!empty($usuario['foto_perfil'])): ?>
 
@@ -181,7 +169,7 @@ if (!$usuario) {
         <?php endif; ?>
     </div>
 
-    <!-- Dados da conta (htmlspecialchars evita injeção de HTML) -->
+    <!-- dados da conta (htmlspecialchars protege o html) -->
     <div class="informacao">
         <strong>Nome:</strong>
         <?php echo htmlspecialchars($usuario['name_sobrenome']); ?>
@@ -192,13 +180,18 @@ if (!$usuario) {
         <?php echo htmlspecialchars($usuario['email']); ?>
     </div>
 
-    <!-- Ação da conta: mesma pasta (app/) -->
+    <!-- acoes da conta (mesma pasta app/) -->
     <div class="botoes">
         <a href="update.php">Atualizar conta</a>
         <a href="delete.php">Excluir conta</a>
     </div>
 
-    <!-- Voltar para as páginas do site (links absolutos) -->
+    <!-- sair da conta: logout.php limpa a sessao e volta pro inicio -->
+    <div class="botoes" style="margin-top: 14px;">
+        <a href="/projetointegrador/login/logout.php">Sair da conta</a>
+    </div>
+
+    <!-- voltar pra outras paginas do site -->
     <div class="botoes" style="margin-top: 14px;">
         <a href="/projetointegrador/pages/noticias.php">Notícias</a>
         <a href="/projetointegrador/pages/albuns.php">Álbuns</a>
@@ -207,8 +200,8 @@ if (!$usuario) {
         <a href="/projetointegrador/pages/linhadotempo.php">Linha do tempo</a>
     </div>
 
-    <!-- Notícias que este usuário favoritou no blog:
-         listar_favoritos() traz a notícia + contagem de curtidas -->
+    <!-- noticias favoritas: listar_favoritos() traz o resumo
+         e a contagem de curtidas de cada uma -->
     <?php $favoritas = listar_favoritos($conexao, (int) $_SESSION['id']); ?>
 
     <div class="favoritas">
@@ -246,11 +239,9 @@ if (!$usuario) {
         <?php endif; ?>
     </div>
 
-    <!-- Álbuns que este usuário favoritou (banda e solos):
-         listar_favoritos_albuns() traz id, título, tipo e a
-         contagem de curtidas de cada um. O tipo decide o link
-         (banda = albuns.php, solo = albunssolos.php); a âncora
-         #album-ID abre o card certo. -->
+    <!-- albuns favoritos: o tipo decide o link
+         (banda = albuns.php, solo = albunssolos.php),
+         e o #album-ID abre o card certo -->
     <?php $favoritos_albuns = listar_favoritos_albuns($conexao, (int) $_SESSION['id']); ?>
 
     <div class="favoritas">

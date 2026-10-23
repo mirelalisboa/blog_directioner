@@ -1,42 +1,23 @@
-<!-- =====================================================
-     login/login.php — CRIAÇÃO DE CONTA (cadastro)
-     ATENÇÃO: apesar do nome, esta página CRIA CONTA.
-     A página que faz LOGIN é a login/cadastro.php
-     (os nomes estão trocados desde o início do projeto;
-     manter assim para não quebrar os links existentes).
-     O QUE FAZ: recebe nome + e-mail + senha via POST,
-     valida, grava via cadastra_user() (functions.php),
-     inicia a sessão e manda para a página de notícias.
-     POR QUÊ: porta de entrada de novos usuários do blog.
-     ===================================================== -->
+<!-- criar conta (atencao: os nomes dos arquivos estao trocados,
+     login.php cria a conta e cadastro.php faz o login;
+     mantive igual pra nao quebrar os links) -->
 <?php
 
-// ------------------------------------------------------------------
-// Sessão: precisa existir ANTES de qualquer HTML, porque guardamos
-// os dados do usuário nela logo após o cadastro.
-// ------------------------------------------------------------------
+// a sessao tem que comecar antes do html (e nela que ficam
+// os dados do usuario depois do cadastro)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ------------------------------------------------------------------
-// functions.php traz:
-//  - cadastra_user()  → INSERT com senha hash (password_hash)
-//  - consulta_user()  → SELECT por e-mail (para reabrir a sessão)
-//  - e a conexão $conexao (inclui database/connect.php)
-// ------------------------------------------------------------------
+// functions.php traz as funcoes de cadastro/login e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
 $mensagem = '';
 
-// ------------------------------------------------------------------
-// Só processa o formulário quando ele é enviado (POST).
-// No primeiro acesso (GET) a página só é desenhada.
-// ------------------------------------------------------------------
+// so processa o form quando ele e enviado (post)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Pega os campos do formulário (?? '' evita erro de
-    // índice inexistente quando o campo não vem).
+    // pega os campos do form (o ?? '' evita erro se nao vier)
     $nome  = trim($_POST['name_sobrenome'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
@@ -48,21 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = 'Digite um e-mail válido.';
     } else {
 
-        // Tenta gravar o usuário (senhas nunca puros: função hash).
+        // grava o usuario (a senha vai com hash)
         $resultado = cadastra_user($conexao, $nome, $email, $senha);
 
         if ($resultado === true) {
 
-            // Busca de volta o usuário recém-criado para pegar o id.
+            // busca o usuario de novo pra pegar o id dele
             $usuario = consulta_user($conexao, $email);
 
             if ($usuario) {
 
-                // Cria os dados da sessão:
-                //  - session_regenerate_id: troca o id da sessão
-                //    (medida básica contra fixação de sessão);
-                //  - as 3 chaves abaixo são o que os guardas de
-                //    login e as páginas do perfil usam.
+                // monta a sessao: troca o id dela (seguranca)
+                // e grava as 3 chaves usadas em todo o site
                 session_regenerate_id(true);
 
                 $_SESSION['id']      = $usuario['id'];
@@ -76,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensagem = 'Cadastro realizado, mas não foi possível iniciar a sessão.';
             }
         } else {
-            // O mais comum: e-mail já cadastrado (UNIQUE no banco).
+            // o mais comum: email ja cadastrado no banco
             $mensagem = 'Não foi possível cadastrar. Verifique se o e-mail já está cadastrado.';
         }
     }
@@ -257,12 +235,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-    <!-- Vídeo de abertura (a pasta videos/ tem nomes estranhos,
-         legados do projeto — não renomear; ver AGENTS.md) -->
-    <!-- Menu global do site -->
-    <?php include __DIR__ . '/../includes/header.php'; ?><br>
+    <!-- video de abertura (nome do arquivo e assim mesmo, nao mexi) -->
+
     <video controls autoplay muted>
-        <source src="../videos/video.mp4/videoone.mp4.png.mp4.mp4" type="video/mp4">
+        <source src="videos\video.mp4\videokiss.mp4.png.mp4.mp4" type="video/mp4">
     </video>
 
 

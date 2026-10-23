@@ -1,12 +1,5 @@
-<!-- =====================================================
-     pages/linhadotempo.php — LINHA DO TEMPO (fotos por era)
-     O QUE FAZ: botões por período (2010‑11, 2012‑13, 2014‑15,
-     2016‑atual) que abrem a galeria de fotos da era escolhida
-     (?ano=...). As fotos ficam em images/<era>/ (baixadas do
-     Wikimedia Commons) e cada uma linka para a sua página de
-     origem no Commons.
-     POR QUÊ: conta a evolução da banda desde o X Factor.
-     ===================================================== -->
+<!-- linha do tempo: botoes por era que abrem a galeria de
+     fotos dela (as fotos ficam na pasta images/<era>/) -->
 <?php
 
 // Rótulos dos períodos em variáveis (padrão do projeto).
@@ -14,9 +7,8 @@ $epoca1 = "2010 - 2012";
 $epoca2 = "2013 - 2015";
 $epoca3 = "2016 - 2020";
 
-// Fotos por era — arquivos locais em images/<era>/ (baixadas do
-// Wikimedia Commons, licença livre). Cada foto tem: 'url' (arquivo
-// local), 'origem' (página da foto no Commons) e 'legenda'.
+// fotos por era: url do arquivo, link da fonte no
+// wikimedia commons e a legenda de cada foto
 $fotos_eras = array(
     // Era X Factor Live (2010-11): os primeiros shows da banda.
     "2010-11" => array(
@@ -132,7 +124,7 @@ $fotos_eras = array(
     ),
 );
 
-// Subtítulos exibidos na galeria de cada era (mesma chave de $fotos_eras).
+// titulo exibido na galeria de cada era (mesma chave das fotos)
 $titulos_eras = array(
     "2010-11"    => "Era X Factor Live (2010-2011)",
     "2012-13"    => "Era Take Me Home (2012-2013)",
@@ -140,15 +132,14 @@ $titulos_eras = array(
     "2016-atual" => "Hiato — carreiras solo (2016-atual)",
 );
 
-// Era selecionada quando a página chega com ?ano=..., validada contra as
-// eras conhecidas (evita qualquer valor inventado na URL). Sem ?ano= (ou
-// valor inválido), só o menu de eras é exibido.
+// a era escolhida vem da url (?ano=...); se o valor nao
+// for uma era cadastrada, so o menu de eras aparece
 $ano_era = "";
 if (isset($_GET["ano"]) && array_key_exists((string) $_GET["ano"], $fotos_eras)) {
     $ano_era = (string) $_GET["ano"];
 }
 
-// Guardas de login (incluem o session_start()).
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../login/verificauser.php';
 
@@ -547,13 +538,12 @@ require_once __DIR__ . '/../login/verificauser.php';
         }
     </style>
 
-    <!-- Vídeo de abertura (mesmo arquivo de noticias.php) -->
+    <!-- video de abertura -->
     <!-- Menu global -->
     <?php include __DIR__ . '/../includes/header.php'; ?>
 
-    <video autoplay loop muted playsinline width="50%">
-        <source src="..\videos\video.mp4\videomp4.png.mp4" type="video/mp4">
-        O seu navegador não suporta a reprodução de vídeo.
+    <video controls autoplay muted>
+        <source src="..\videos\video.mp4\videogotta.mp4.png.mp4.mp4" type="video/mp4">
     </video>
     <h3>Linha do Tempo </h3>
     <hr>
@@ -567,7 +557,7 @@ require_once __DIR__ . '/../login/verificauser.php';
 </div>
 
 <?php if ($ano_era !== ""): ?>
-    <!-- Galerias de fotos da era escolhida (imagens externas) -->
+    <!-- galeria da era escolhida -->
     <h3 id="fotos-era">
         Fotos da era: <?php echo htmlspecialchars($titulos_eras[$ano_era], ENT_QUOTES, 'UTF-8'); ?>
     </h3>
@@ -589,7 +579,7 @@ require_once __DIR__ . '/../login/verificauser.php';
         <?php endforeach; ?>
     </div>
 <?php else: ?>
-    <!-- Sem era escolhida: pede que o usuário clique em um período acima -->
+    <!-- sem era escolhida ainda: pede pra clicar acima -->
     <p class="mensagem">Clique em um período acima para ver as fotos da era.</p>
 <?php endif; ?>
 

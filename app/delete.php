@@ -1,24 +1,16 @@
-<!-- =====================================================
-     app/delete.php — EXCLUIR MINHA CONTA
-     O QUE FAZ: pede confirmação (POST) e apaga a própria conta
-     do banco, encerrando a sessão em seguida.
-     POR QUÊ: acessado pelo botão "Excluir conta" de app/perfil.php.
-     FLUXO: guardas de login → POST confirma → excluir_user()
-     (functions.php, DELETE por e-mail) → sessão destruída →
-     volta para a página inicial (index.php).
-     ===================================================== -->
+<!-- excluir a propria conta: pede confirmacao por post -->
 <?php
 
-// Sessão: precisa estar ativa antes de qualquer HTML (headers).
+// sessao ativa antes de qualquer html
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Guardas de login: exige usuário conectado.
+// exigencias de login (dois arquivos que checam a sessao)
 require_once __DIR__ . '/../includes/verificalogin.php';
 // functions.php: excluir_user() + $conexao.
 require_once __DIR__ . '/../includes/functions.php';
-// Reforço do guarda (same key: $_SESSION['id']).
+// reforco da checagem de login
 require_once __DIR__ . '/../login/verificauser.php';
 
 // Verifica se existe um e-mail na sessão.
@@ -29,23 +21,21 @@ if (!isset($_SESSION['email']) || empty($_SESSION['email'])) {
 
 $mensagem = "";
 
-// Só exclui a conta quando o formulário for enviado (POST):
-// isso evita apagar a conta num simples acesso à página (GET).
+// so exclui quando o form e enviado (post):
+// so abrir a pagina (get) nao apaga nada
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Guarda o e-mail da conta conectada.
     $email = $_SESSION['email'];
 
-    // Exclui a conta pelo e-mail (DELETE com prepared statement).
+        // apaga a conta do banco pelo email
     if (excluir_user($conexao, $email)) {
 
-        // Encerra a sessão após excluir a conta:
-        // nada mais para fazer aqui — nem perfil nem menu logado.
+        // encerra a sessao (a conta nao existe mais)
         $_SESSION = [];
         session_destroy();
 
-        // Conta apagada: o usuário não está mais logado, então volta
-        // para a página inicial do site (index.php).
+        // volta pra pagina inicial
         header("Location: /projetointegrador/index.php");
         exit();
 

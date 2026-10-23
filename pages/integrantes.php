@@ -1,20 +1,14 @@
-<!-- =====================================================
-     pages/integrantes.php — OS CINCO INTEGRANTES
-     O QUE FAZ: seções por membro (Harry, Louis, Niall, Zayn,
-     Liam) com vídeo, notícias externas e atalho "ver albuns"
-     para pages/albunssolos.php.
-     ===================================================== -->
+<!-- os 5 integrantes: video, texto e links de noticias/albuns -->
 <?php
 
-// Nomes dos integrantes em variáveis (padrão das outras
-// páginas: dados separados do HTML).
+// nomes dos integrantes em variaveis (o html so exibe)
 $integrante1 = "Harry Styles";
 $integrante2 = "Louis Tomlinson";
 $integrante3 = "Niall Horan";
 $integrante4 = "Zayn Malik";
 $integrante5 = "Liam Payne";
 
-// Guardas de login (incluem o session_start()).
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../login/verificauser.php';
 ?>
@@ -340,7 +334,6 @@ require_once __DIR__ . '/../login/verificauser.php';
 
     <!-- Menu global -->
     <?php include __DIR__ . '/../includes/header.php'; ?>
-    <!-- Vídeo de abertura (mesmo arquivo da página inicial) -->
 
 
 

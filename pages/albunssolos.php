@@ -1,13 +1,7 @@
-<!-- =====================================================
-     pages/albunssolos.php — ÁLBUNS SOLO
-     O QUE FAZ: um bloco por integrante (Harry, Zayn, Niall,
-     Louis, Liam) com os álbuns solo e atalho para o YouTube.
-
-     ===================================================== -->
+<!-- albuns solo: um bloco por integrante, com interacoes -->
 <?php
 
-// Álbuns solo, um bloco por integrante — dados em variáveis,
-// HTML abaixo só exibe (mesma técnica de pages/albuns.php).
+// albuns solo em variaveis (o html de baixo so exibe)
 $harry1 = "Harry Styles (2017)";
 $harry2 = "Fine Line (2019)";
 $harry3 = "Harry's House (2022)";
@@ -30,22 +24,18 @@ $louis3 = "How Did I Get Here? (2026)";
 
 $liam1 = "LP1 (2019)";
 
-// Guardas de login (mesma exigência de pages/albuns.php).
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
 require_once __DIR__ . '/../login/verificauser.php';
-// functions.php: $conexao + curtir/favoritar/comentar álbuns
-// (mesma mecânica das notícias).
+// functions.php traz funcoes de album e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
-// id do usuário logado (o guard acima garante que existe) —
-// usado por curtir/favoritar.
+// id do usuario logado (pra curtir/favoritar)
 $usuario_id = (int) ($_SESSION['id'] ?? 0);
 
 $mensagem = '';
 
-// Salva comentário/curtida/favorito quando um formulário dos
-// blocos é enviado (POST). Cada form traz o campo hidden
-// "tipo" (a ação) e "album_id" (o álbum do bloco).
+// cada form manda hidden 'tipo' (acao) e 'album_id' (o album)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = $_POST['tipo'] ?? '';
 
@@ -74,10 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Registros dos álbuns solo no banco (UM CARD POR INTEGRANTE),
-// indexados pelo título/h2 de cada bloco. Se o banco ainda
-// não tiver o cadastro (database/albuns.sql), os blocos de
-// interação simplesmente não aparecem — a página fica igual.
+// albuns solo no banco indexados pelo titulo/h2 do bloco;
+// sem cadastro no banco, os blocos de interacao nao aparecem
 $albuns_por_titulo = [];
 foreach (listar_albuns($conexao, 'solo') as $linha) {
     $albuns_por_titulo[$linha['titulo']] = $linha;
@@ -94,9 +82,7 @@ foreach (listar_albuns($conexao, 'solo') as $linha) {
 
     <title>One Direction</title>
 
-    <!-- Só o CSS das interações — valores EXATOS do blog de
-         notícias (pages/noticias.php), para os bloquinhos
-         ficarem iguais aos cartões de notícia -->
+    <!-- mesmo css das interacoes do blog de noticias -->
     <style>
         /* Paleta compartilhada com noticias.php */
         :root {
@@ -407,8 +393,7 @@ foreach (listar_albuns($conexao, 'solo') as $linha) {
 
     <hr>
 
-    <!-- ==== Um bloco por integrante (mesmo molde: h2 + parágrafo
-         + botão de busca no YouTube + hr) ==== -->
+    <!-- um bloco por integrante (titulo + texto + botao do youtube) -->
     <h2>Harry Styles</h2>
 
     <p>
@@ -420,8 +405,7 @@ foreach (listar_albuns($conexao, 'solo') as $linha) {
     <input type="button" value="Ouvir no YouTube"
         onclick="window.location.href='https://www.youtube.com/results?search_query=Harry+Styles+albums'">
 
-    <!-- Interações deste bloco (curtir/favoritar/comentar);
-         o registro é achado pelo nome do integrante -->
+    <!-- curtir/favoritar/comentar (achado pelo nome do integrante) -->
     <?php interacoes_album($conexao, $albuns_por_titulo['Harry Styles'] ?? null, $usuario_id); ?>
 
     <hr>

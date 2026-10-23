@@ -1,18 +1,16 @@
 <?php
 
-// Sessão ativa antes de qualquer HTML (os redirecionamentos
-// dependem disso).
+// sessao ativa antes de qualquer html
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Guarda de login: sem sessão → redireciona.
+// exige login
 require_once __DIR__ . '/../includes/verificalogin.php';
-// functions.php: todas as funções de admin + $conexao.
+// functions.php traz as funcoes de admin e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 
-// Confere se o usuário conectado é administrador.
-// (SELECT com WHERE pelo e-mail da sessão.)
+// ve se quem ta logado e admin
 $emailSessao = $_SESSION['email'] ?? '';
 
 $sqlAdmin = "SELECT tipo FROM usuarios WHERE email = :email";
@@ -21,9 +19,8 @@ $stmtAdmin->bindValue(':email', $emailSessao);
 $stmtAdmin->execute();
 $usuarioLogado = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
 
-// Não é admin → nega o acesso (HTTP 403) e encerra.
-// A coluna 'tipo' é 'admin' para contas de administração
-// e 'usuario' (padrão) para contas comuns.
+// quem nao e admin recebe erro 403 e para
+// (coluna tipo: 'admin' pra conta de admin, 'usuario' comum)
 if (!$usuarioLogado || $usuarioLogado['tipo'] !== 'admin') {
     http_response_code(403);
     exit('Acesso negado. Esta página é exclusiva para administradores.');
@@ -31,14 +28,14 @@ if (!$usuarioLogado || $usuarioLogado['tipo'] !== 'admin') {
 
 $mensagem = '';
 
-// Cadastra, atualiza ou exclui notícias
-// (um único formulário/POST por operação, decidido por 'acao').
+// o campo 'acao' decide o que o post faz
+// (cadastrar/editar/excluir noticia ou usuario)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
 
     try {
         if ($acao === 'cadastrar') {
-            // INSERT de nova notícia nos campos do formulário.
+            // cadastra a noticia nova
             $sql = "INSERT INTO noticias (titulo, noticia, foto, link)
                     VALUES (:titulo, :noticia, :foto, :link)";
 
@@ -53,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = 'Notícia cadastrada com sucesso!';
 
         } elseif ($acao === 'editar') {
-            // UPDATE da notícia pelo id (formulário da listagem).
+            // edita a noticia pelo id
             $sql = "UPDATE noticias
                     SET titulo = :titulo,
                         noticia = :noticia,
@@ -73,8 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = 'Notícia atualizada!';
 
         } elseif ($acao === 'excluir') {
-            // DELETE de notícia escolhida. Comentários vinculados
-            // somem junto (ON DELETE CASCADE no banco).
+            // exclui a noticia (os comentarios somem junto no banco)
             $sql = "DELETE FROM noticias WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->execute([
@@ -85,9 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } elseif ($acao === 'excluir_usuario') {
 
-            // Exclusão de usuário pelo e-mail (tabela usuarios).
-            // excluir_user() faz DELETE com prepared statement
-            // e devolve true só se alguma linha foi afetada.
+            // exclui o usuario pelo email (true se conseguiu)
             if (excluir_user($conexao, trim($_POST['email'] ?? ''))) {
                 $mensagem = 'Usuário excluído com sucesso!';
             } else {
@@ -96,8 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } elseif ($acao === 'excluir_comentario') {
 
-            // DELETE de comentário de notícia (resultado da
-            // pesquisa por integrante).
+            // exclui comentario de noticia
             $sql = "DELETE FROM comentarios WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->execute([':id' => (int) ($_POST['id'] ?? 0)]);
@@ -106,8 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } elseif ($acao === 'excluir_comentario_album') {
 
-            // DELETE de comentário de álbum (resultado da
-            // pesquisa por integrante).
+            // exclui comentario de album
             $sql = "DELETE FROM album_comentarios WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->execute([':id' => (int) ($_POST['id'] ?? 0)]);
@@ -116,9 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } elseif ($acao === 'excluir_album') {
 
-            // DELETE de álbum inteiro (resultado da pesquisa por
-            // integrante). Curtidas/favoritos/comentários do álbum
-            // somem junto (ON DELETE CASCADE no banco).
+            // exclui o album inteiro (curtidas e comentarios
+            // dele somem junto no banco)
             $sql = "DELETE FROM albuns WHERE id = :id";
             $stmt = $conexao->prepare($sql);
             $stmt->execute([':id' => (int) ($_POST['id'] ?? 0)]);
@@ -130,17 +121,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ------------------------------------------------------------------
-// PESQUISA POR INTEGRANTE — tudo que há dele no site.
-// Um nome (ex.: "Harry") é procurado nas tabelas possíveis:
-// noticias (título/texto), comentarios (texto, com a notícia para
-// contexto), albuns (título/descrição), album_comentarios (texto,
-// com o álbum para contexto) e usuarios (nome/e-mail da conta).
-// ILIKE = comparação sem diferenciar maiúsculas de minúsculas.
-// ------------------------------------------------------------------
+// pesquisa por integrante: procura o nome em noticias,
+// comentarios, albuns e contas de usuario
+// (ILIKE ignora maiusculas/minusculas)
 $nomeIntegrante = trim($_GET['busca_integrante'] ?? '');
 
-// Cada lista começa vazia (a página funciona mesmo sem busca).
+// listas comecam vazias (a pagina funciona sem busca)
 $integraNoticias   = []; // notícias que citam o nome
 $integraComments   = []; // comentários de notícias que citam
 $integraAlbuns     = []; // álbuns que citam
@@ -151,7 +137,7 @@ if ($nomeIntegrante !== '') {
     try {
         $likeT = '%' . $nomeIntegrante . '%';
 
-        // 1) Notícias: título OU texto traz o nome.
+        // 1) noticias: nome no titulo ou no texto
         $stmt = $conexao->prepare(
             "SELECT id, titulo, noticia
              FROM noticias
@@ -161,8 +147,7 @@ if ($nomeIntegrante !== '') {
         $stmt->execute([':like_t' => $likeT, ':like_n' => $likeT]);
         $integraNoticias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 2) Comentários de notícias: texto traz o nome
-        //    (LEFT JOIN traz a notícia-mãe para dar contexto).
+        // 2) comentarios de noticias (join pega a noticia pro contexto)
         $stmt = $conexao->prepare(
             "SELECT c.id, c.comentario, c.noticia_id,
                     n.titulo AS noticia_titulo
@@ -174,7 +159,7 @@ if ($nomeIntegrante !== '') {
         $stmt->execute([':like' => $likeT]);
         $integraComments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3) Álbuns: título OU descrição traz o nome.
+        // 3) albuns: nome no titulo ou na descricao
         $stmt = $conexao->prepare(
             "SELECT id, tipo, titulo, descricao
              FROM albuns
@@ -184,8 +169,7 @@ if ($nomeIntegrante !== '') {
         $stmt->execute([':like_t' => $likeT, ':like_d' => $likeT]);
         $integraAlbuns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 4) Comentários de álbuns: texto traz o nome
-        //    (LEFT JOIN traz o álbum-mãe para dar contexto).
+        // 4) comentarios de albuns (join pega o album pro contexto)
         $stmt = $conexao->prepare(
             "SELECT a.id, a.comentario, a.album_id,
                     b.titulo AS album_titulo
@@ -197,7 +181,7 @@ if ($nomeIntegrante !== '') {
         $stmt->execute([':like' => $likeT]);
         $integraAlbumComts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 5) Contas de usuários: nome do perfil OU e-mail traz o nome.
+        // 5) contas com o nome ou o email
         $stmt = $conexao->prepare(
             "SELECT id, name_sobrenome, email, tipo
              FROM usuarios
@@ -208,7 +192,7 @@ if ($nomeIntegrante !== '') {
         $integraUsuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $erro) {
         error_log("Erro ao pesquisar integrante: " . $erro->getMessage());
-        // As listas continuam vazias — a página mostra "nada encontrado".
+        // erro vai pro log e as listas ficam vazias ("nada encontrado")
     }
 }
 ?>
@@ -219,6 +203,191 @@ if ($nomeIntegrante !== '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrador | One Direction</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Federo&display=swap');
+
+        /* =========================================================
+           PALETAS DE CORES DISPONÍVEIS
+           ========================================================= */
+        :root {
+            /* Paleta 4: Azul-marinho, Cinza e Branco */
+            --p4-navy: #142B4A;
+            --p4-slate-gray: #708090;
+            --p4-ice-white: #E8EDF2;
+
+            /* Mapeamento de variáveis */
+            --fundo: var(--p4-navy);           /* Fundo principal */
+            --card: #1C365D;                  /* Fundo das caixas e cartões */
+            --azul: var(--p4-slate-gray);     /* Bordas e linhas */
+            --azul-claro: #A9C4CE;            /* Destaques e links */
+            --marrom: #2B4566;                /* Botões principais */
+            --marrom-claro: #385B87;          /* Hover dos botões */
+            --cinza: var(--p4-slate-gray);    /* Linhas divisórias */
+            --texto: var(--p4-ice-white);     /* Texto principal */
+            --texto-suave: #B0C0D0;           /* Rótulos e textos secundários */
+            --vermelho-erro: #8B2626;         /* Botão de exclusão */
+            --vermelho-hover: #A83232;        /* Hover de exclusão */
+        }
+
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--fundo);
+            color: var(--texto);
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            padding: 20px 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--texto);
+            text-align: center;
+            font-size: 1.8em;
+            margin: 20px 0 10px;
+        }
+
+        h2 {
+            color: var(--azul-claro);
+            font-size: 1.3em;
+            margin: 25px 0 15px;
+            border-bottom: 1px solid var(--azul);
+            padding-bottom: 5px;
+        }
+
+        body > p {
+            text-align: center;
+            color: var(--texto-suave);
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+
+        /* Mensagens de confirmação e erro */
+        .mensagem {
+            background-color: var(--card);
+            border: 1px solid var(--azul-claro);
+            color: var(--texto);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px auto;
+            max-width: 600px;
+        }
+
+        /* Formulários */
+        form {
+            background-color: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--azul);
+            margin-bottom: 20px;
+        }
+
+        form div {
+            margin-bottom: 15px;
+        }
+
+        form p {
+            color: var(--texto-suave);
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--azul);
+            border-radius: 6px;
+            background-color: #0E1E34;
+            color: var(--texto);
+            font-family: inherit;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        textarea:focus {
+            border-color: var(--azul-claro);
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* Botões */
+        button[type="submit"] {
+            background-color: var(--marrom);
+            color: var(--texto);
+            border: 1px solid var(--azul);
+            padding: 9px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.88em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--marrom-claro);
+        }
+
+        /* Botões de exclusão dentro das listas */
+        div > form button[type="submit"] {
+            background-color: var(--vermelho-erro);
+            border-color: #B23B3B;
+            margin-top: 8px;
+        }
+
+        div > form button[type="submit"]:hover {
+            background-color: var(--vermelho-hover);
+        }
+
+        /* Blocos de resultados da busca */
+        div > p {
+            text-align: left;
+            color: var(--texto);
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        /* Linhas divisórias */
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--azul), transparent);
+            margin: 25px 0;
+        }
+
+        /* Links do final da página */
+        a {
+            color: var(--azul-claro);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--texto);
+            text-decoration: underline;
+        }
+
+        p a {
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
@@ -226,14 +395,12 @@ if ($nomeIntegrante !== '') {
     <p>Bem-vindo à administração do blog One Direction!</p>
 
     <?php if ($mensagem !== ''): ?>
-        <p><?= htmlspecialchars($mensagem) ?></p>
+        <p class="mensagem"><?= htmlspecialchars($mensagem) ?></p>
     <?php endif; ?>
 
     <hr>
 
-    <!-- =====================================================
-         CADASTRO DE NOTÍCIA (POST acao=cadastrar)
-         ===================================================== -->
+    <!-- form de cadastro de noticia -->
     <h2>Cadastrar notícia</h2>
 
     <form method="POST">
@@ -264,14 +431,7 @@ if ($nomeIntegrante !== '') {
 
     <hr>
 
-    <!-- =====================================================
-         PESQUISA POR INTEGRANTE: um único campo de busca varre
-         tudo que há dele no site — notícias, comentários,
-         álbuns, comentários de álbuns e contas de usuário.
-         Nada é listado adiantado: os resultados SÓ aparecem
-         depois de pesquisar o nome. Cada resultado oferece
-         sua exclusão, com confirmação.
-         ===================================================== -->
+    <!-- pesquisa por integrante -->
     <h2>Pesquisar integrante (tudo que há dele no site)</h2>
 
     <form method="GET" action="">
@@ -279,7 +439,7 @@ if ($nomeIntegrante !== '') {
             Nome do integrante:
             <input type="text" name="busca_integrante"
                    value="<?= htmlspecialchars($nomeIntegrante) ?>"
-                   placeholder="ex.: Harry, Zayn, Niall, Louis, Liam">
+                   placeholder="ex.: Harry, Zayn, Niall, Louis, Liam" style="margin: 10px 0;">
             <button type="submit">Pesquisar</button>
         </p>
     </form>
@@ -386,8 +546,8 @@ if ($nomeIntegrante !== '') {
 
     <?php endif; ?>
 
-    <p><a href="../pages/noticias.php">Voltar para as notícias</a></p>
-    <p><a href="/projetointegrador/login/logout.php">Sair da conta</a></p>
+    <p style="text-align: center;"><a href="../pages/noticias.php">Voltar para as notícias</a></p>
+    <p style="text-align: center;"><a href="/projetointegrador/login/logout.php">Sair da conta</a></p>
 
 </body>
 </html>

@@ -1,8 +1,6 @@
 <?php
-// A sessão precisa ser iniciada ANTES de qualquer HTML (o header,
-// incluído no fim do arquivo, lê $_SESSION para o menu — e chamar
-// session_start() depois de output gera o warning
-// "Session cannot be started after headers have already been sent").
+// a sessao tem que comecar antes do html,
+// senao o header (menu) da erro ao ler $_SESSION
 session_start();
 ?>
 <!DOCTYPE html>
@@ -16,9 +14,7 @@ session_start();
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Federo&display=swap');
 
-    /* =========================================================
-       PALETAS DE CORES DISPONÍVEIS
-       ========================================================= */
+    /* paleta de cores do site */
     :root {
         /* Paleta 1: Azul e Branco */
         --p1-blue: #1769AA;
@@ -40,9 +36,7 @@ session_start();
         --p4-slate-gray: #708090;
         --p4-ice-white: #E8EDF2;
 
-        /* =========================================================
-           VARIÁVEIS MAPEADAS COM A NOVA PALETA (Paleta 4)
-           ========================================================= */
+        /* variaveis do tema (paleta usada no site) */
         --fundo: var(--p4-navy);           /* Fundo geral da página */
         --card: #1C365D;                  /* Fundo dos cartões/caixas */
         --azul: var(--p4-slate-gray);     /* Bordas e destaques primários */
@@ -360,17 +354,20 @@ session_start();
     <h1> BEM VINDOS,
         AO BLOG DIRECTIONER!</h1>
     <hr>
-    <?php include __DIR__ . '/includes/header.php'; ?>
     
-    <video autoplay loop muted playsinline width="50%">
-        <source src="videos\video.mp4\videoone.mp4.png.mp4.mp4" type="video/mp4">
-        O seu navegador não suporta a reprodução de vídeo.
+    
+    <!-- video de abertura do site (o nome estranho do arquivo
+         e assim mesmo, nao mexi pra nao quebrar) -->
+    <video controls autoplay muted>
+        <source src="videos\video.mp4\videolive.mp4.png.mp4.mp4" type="video/mp4">
     </video>
+
 
    
     <hr>
 
     <main>
+        <!-- botao que leva pra pagina de criar conta -->
         <form action="" method="post">
 
             <button type="button" onclick="window.location.href='/projetointegrador/login/login.php'">
@@ -381,6 +378,7 @@ session_start();
 
 
     <hr>
+    <!-- rodape do site -->
     <?php include __DIR__ . '/includes/footer.php';
     ?>
 </body>

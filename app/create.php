@@ -1,17 +1,12 @@
-<!-- =====================================================
-     app/create.php — ADICIONAR NOTÍCIA OU COMENTÁRIO (legado)
-     O QUE FAZ: formulário completo para gravar notícias na
-     tabela noticias e comentários na tabela comentarios.
-
-     ===================================================== -->
+<!-- adiciona notícia ou comentário no blog -->
 <?php
 
-// Sessão: guardamos id/usuario/email do usuário logado nela.
+// sessao guarda id/usuario/email de quem ta logado
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Importa as funções (que carregam a conexão) e o guarda de login.
+// functions.php traz as funcoes e a conexao
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../login/verificauser.php';
 
@@ -20,8 +15,7 @@ $mensagem = '';
 // Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Recebe o tipo de publicação (noticia ou comentario),
-    // decide a operação pelo valor do <select>.
+    // o <select> decide se grava noticia ou comentario
     $tipo = $_POST['tipo'] ?? '';
 
     try {
@@ -39,8 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Preencha o título e a notícia.');
             }
 
-            // INSERT com prepared statement (valores em :parametros,
-            // nunca concatenados na string SQL contra injeção).
+            // insert com os valores nos :parametros
+            // (protegido contra sql injection)
             $sql = "INSERT INTO noticias (titulo, noticia, foto, link)
                     VALUES (:titulo, :noticia, :foto, :link)";
 
@@ -59,8 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Adiciona um comentário
         elseif ($tipo === 'comentario') {
 
-            // Valida o id da notícia escolhida como inteiro,
-            // evita textos/valores maliciosos no campo.
+            // valida o id da noticia como numero inteiro
             $noticia_id = filter_input(
                 INPUT_POST,
                 'noticia_id',
@@ -84,8 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Notícia não encontrada.');
             }
 
-            // Salva o comentário sem cadastrar um usuário
-            // (comentário anônimo vinculado à notícia).
+            // salva o comentario ligado so a noticia (sem usuario)
             $sql = "INSERT INTO comentarios (noticia_id, comentario)
                     VALUES (:noticia_id, :comentario)";
 
@@ -110,8 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Busca as notícias disponíveis
-// (alimentam o <select> de escolha do comentário)
+// lista as noticias pro <select> do comentario
 $stmt = $conexao->query(
     "SELECT id, titulo FROM noticias ORDER BY id DESC"
 );
@@ -136,7 +127,7 @@ $noticias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <p><?= htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
 
-    <!-- Um único formulário com dois "modos" (campo tipo) -->
+    <!-- um form so, o campo tipo escolhe o modo -->
     <form method="POST" action="">
 
         <label for="tipo">Escolha o que deseja adicionar:</label>
