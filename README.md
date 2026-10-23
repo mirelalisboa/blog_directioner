@@ -45,7 +45,7 @@ O sistema tem três áreas: **pública** (conteúdo aberto), **do usuário cadas
 ### Passo 1: Clonar o repositório
 ```bash
 
-git clone https://github.com/mirelalisboa/projetointegrador.git
+https://github.com/mirelalisboa/projetointegrador.git
 
 ```
 
@@ -83,8 +83,6 @@ Abra o Terminal, Prompt de Comando ou PowerShell.
 
 Conecte-se ao PostgreSQL de acordo com seu sistema operacional:
 
-Conecte-se ao PostgreSQL de acordo com seu sistema operacional:
-
 Linux/macOS (Terminal):
 ```bash
 sudo -u postgres psql
@@ -109,8 +107,6 @@ Rode os comandos abaixo para criar o usuário 'sitehtml', definir a senha '1234'
 CREATE DATABASE site html;
 
 CREATE USER sitehtml COM SENHA '1234'; 
-
-CRIAR BANCO DE DADOS sitehtml PROPRIETÁRIO sitehtml; 
 
 ALTER DATABASE sitehtml OWNER TO sitehtml;
 ```
